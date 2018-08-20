@@ -11,7 +11,7 @@ typedef struct _STetro
 
 	// starting position on field
 	uint8_t x = 7;
-	uint8_t y = 20;
+	uint8_t y = 18;
 } STetro;
 
 namespace Tetro

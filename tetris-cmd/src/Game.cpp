@@ -3,6 +3,7 @@
   */
 
 #include <string>
+#include <iostream>
 #include <chrono>
 #include <thread>
 #include "Windows.h"
@@ -19,7 +20,7 @@ CHAR_INFO screen[CONSOLE_HEIGHT][CONSOLE_WIDTH]; // buffer to draw
 
 SMALL_RECT srect = small_rect(0, 0, CONSOLE_WIDTH - 1, CONSOLE_HEIGHT - 1);
 
-COORD playfield_origin = coord(25, 3); // top-left coord to start drawing playfield (INSIDE the HUD)
+COORD playfield_origin = coord(28, 3); // top-left coord to start drawing playfield (INSIDE the HUD)
 COORD size = coord(CONSOLE_WIDTH, CONSOLE_HEIGHT);
 
 Tetris tetris;
@@ -58,7 +59,8 @@ void put_playfield()
 	{
 		for (int x = 0; x <= 9; x++)
 		{
-			screen[playfield_origin.Y + y][playfield_origin.X + x] = tetris.playfield[x + 4][y + 20];
+			if (tetris.playfield[x + 4][y + 20].Char.AsciiChar != ' ' && tetris.playfield[x + 4][y + 20].Char.AsciiChar != 0)
+				screen[playfield_origin.Y + y][playfield_origin.X + x] = tetris.playfield[x + 4][y + 20];
 		}
 	}
 }
@@ -69,10 +71,21 @@ void put_activefield()
 	{
 		for (int x = 0; x <= 9; x++)
 		{
-			if (tetris.activefield[x + 4][y + 20].Char.AsciiChar != ' ' || tetris.activefield[x + 4][y + 20].Char.AsciiChar != 0)
+			if (tetris.activefield[x + 4][y + 20].Char.AsciiChar != ' ' && tetris.activefield[x + 4][y + 20].Char.AsciiChar != 0)
 			{
 				screen[playfield_origin.Y + y][playfield_origin.X + x] = tetris.activefield[x + 4][y + 20];
 			}
+		}
+	}
+}
+
+void put_background()
+{
+	for (int y = 0; y <= 19; y++)
+	{
+		for (int x = 0; x <= 9; x++)
+		{
+			screen[playfield_origin.Y + y][playfield_origin.X + x] = char_info('!', 0b11);
 		}
 	}
 }
@@ -89,6 +102,18 @@ void put_string(int x, int y, std::string str)
 void put_charinfo(int x, int y, CHAR_INFO c = char_info(' ', 0))
 {
 	screen[y][x] = c;
+}
+// Put a STetro into screen.
+void put_STetro(int sx, int sy, STetro st)
+{
+	for (int y = 0; y < 4; y++)
+	{
+		for (int x = 0; x < 4; x++)
+		{
+			if(st.tetro[x][y].Char.AsciiChar != ' ')
+				screen[y + sy][x + sx] = st.tetro[x][y];
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////
@@ -109,23 +134,37 @@ int main()
 	auto fr_end = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<float> fr_duration;
 
+	put_hud();
+
 	while (!tetris.has_lost())
 	{
+		charinfo_clear(*screen, CONSOLE_WIDTH*CONSOLE_HEIGHT);
 		fr_start = std::chrono::high_resolution_clock::now();
 		tetris.update();
 
 		// RENDER //
 		put_hud();
 		put_activefield();
+		put_playfield();
 
-		put_string(0, 5, "SActive.x = " + std::to_string(tetris.SActive.x));
-		put_string(0, 6, "SActive.y = " + std::to_string(tetris.SActive.y));
-		put_string(0, 0, "FPS: " + std::to_string( 1.0f/fr_duration.count()) );
+		put_string(0, 0, "FPS: " + std::to_string(1.0f / fr_duration.count()));
+
+		put_string(0, 2, "Down elapsed: " + std::to_string(tetris.down_elapsed.count()));
+		put_string(0, 3, "can_down: " + std::to_string(tetris.can_down()));
+		put_string(0, 4, "can_left: " + std::to_string(tetris.can_left()));
+		put_string(0, 5, "can_right: " + std::to_string(tetris.can_right()));
+
+		put_string(0, 10, "SActive.x = " + std::to_string(tetris.SActive.x));
+		put_string(0, 11, "SActive.y = " + std::to_string(tetris.SActive.y));
+
+		put_STetro(playfield_origin.X + 15, playfield_origin.Y, get_STetro(*Tetro::tetro[tetris.get_next()]));
 
 		WriteConsoleOutput(hConsole, *screen, size, coord(0, 0), &srect);
 		fr_end = std::chrono::high_resolution_clock::now();
 		fr_duration = fr_end - fr_start;
 	}
+	CloseHandle(hConsole);
 
+	std::cout << "Finished.\n";
 	std::this_thread::sleep_for(1s);
 }

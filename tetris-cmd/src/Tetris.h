@@ -10,27 +10,30 @@
 #include "Tetro.h"
 #include <vector>
 
-
+using namespace std::chrono_literals;
 
 class Tetris
 {
 private:
 	bool lost = false;
 	uint64_t score = 0;
+
 	uint8_t hold; //tetro[hold] value of held piece
 	uint8_t next; //next piece, to preview
+	uint8_t bag[7] = { 0,1,2,3,4,5,6 };
+	uint8_t bag_index = 0;
+
 	bool active = false;
-	std::vector<uint8_t> bag; // 7 tetrominos. bag system used for better distribution
 
 	// TIMING
-	uint8_t interval = 1000; // how long it takes (ms) until tetromino must go down, will change with difficulty
-	std::chrono::time_point<std::chrono::steady_clock> down_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(interval);
-	std::chrono::duration<float, std::milli> down_elapsed; // for test to see if it's time to down
+	int64_t interval = 250; // how long it takes (ms) until tetromino must go down, will change with difficulty
 
+	std::chrono::time_point<std::chrono::steady_clock> down_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(interval);
+	
 	// Put the SActive onto activefield
 	void SActive_activefield()
 	{
-		// CLEAR activefield
+		// remove trail
 		for (int y = 0; y < 40; y++)
 		{
 			for (int x = 0; x < 14; x++)
@@ -42,7 +45,7 @@ private:
 		{
 			for (int x = 0; x < 4; x++)
 			{
-				if (SActive.tetro[x][y].Char.AsciiChar != 0 && SActive.tetro[x][y].Char.AsciiChar != ' ')
+				if (SActive.tetro[x][y].Char.AsciiChar != ' ')
 					activefield[SActive.x + x][SActive.y + y] = SActive.tetro[x][y];
 			}
 		}
@@ -74,6 +77,8 @@ public:
 	// player's active piece
 	STetro SActive;
 
+	std::chrono::duration<float, std::milli> down_elapsed; // for test to see if it's time to down
+
 	bool can_right()
 	{
 		return true;
@@ -85,6 +90,19 @@ public:
 	}
 	bool can_down()
 	{
+		for (int y = 0; y < 4; y++)
+		{
+			for (int x = 0; x < 4; x++)
+			{
+				// don't check blank spots
+				if (SActive.tetro[x][y].Char.AsciiChar != ' ')
+				{
+					// check against the playfield
+					if ((playfield[SActive.x + x][SActive.y + y + 1].Char.AsciiChar != ' ') || (SActive.y + y == 39))
+						return false;
+				}
+			}
+		}
 		return true;
 	}
 
@@ -92,19 +110,26 @@ public:
 	uint64_t get_score() { return score; }
 	float get_interval() { return interval; }
 	bool has_lost() { return lost; }
+	uint8_t get_next() { return next; }
 
-	Tetris()
+	// shuffle tetrominos bag array
+	void inline shuffle_bag()
 	{
-		// seed
-		srand(std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count());
+		for (size_t i = 0; i < 6; i++)
+		{
+			size_t j = i + rand() / (RAND_MAX / (7 - i) + 1);
+			int t = bag[j];
+			bag[j] = bag[i];
+			bag[i] = t;
+		}
+		bag_index = 0;
 	}
 
 	void update()
 	{
-		//if (bag.empty()) // refill bag with values 0-6
-		//{
+		if (bag_index >= 6)
+			shuffle_bag();
 
-		//}
 		if (active)
 		{
 			down_elapsed = std::chrono::high_resolution_clock::now() - down_time;
@@ -115,15 +140,52 @@ public:
 				{
 					SActive.y++;
 				}
+				else //cannot move down, LOCK!
+				{
+					SActive_playfield();
+					charinfo_clear(*activefield, 14 * 40);
+					active = false;
+				}
 			}
 			SActive_activefield();
 		}
-		if (!active)
+		else
 		{
-			SActive = get_STetro(*Tetro::tetro[rand() % 7]);
+			SActive = get_STetro(*Tetro::tetro[next]);
+			next = bag_index++;
+			if (!can_down()) // did we lose?
+			{
+				lost = true;
+				return;
+			}
+			else
+			{
+				SActive.y++;
+				if (can_down()) // room to move down one more?
+				{
+					SActive.y++;
+				}
+				else { }
+			}
+
+
 			SActive_activefield();
 			active = true;
 		}
+	}
+
+	Tetris()
+	{
+		// seed
+		srand(std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count());
+
+		// clear fields
+		charinfo_clear(*playfield, 14 * 40);
+		charinfo_clear(*activefield, 14 * 40);
+
+		shuffle_bag();
+
+		next = bag[bag_index++];
 	}
 };
 
