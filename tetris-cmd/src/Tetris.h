@@ -36,7 +36,7 @@ private:
 	bool prPause = false;
 
 	// TIMING
-	int64_t interval = 250; // how long it takes (ms) until tetromino must go down, will change with difficulty
+	int64_t interval = 1000; // how long it takes (ms) until tetromino must go down, will change with difficulty
 	std::chrono::time_point<std::chrono::steady_clock> down_time;
 	
 	// Put the SActive onto activefield
@@ -83,6 +83,12 @@ private:
 			bag[i] = t;
 		}
 		bag_index = 0;
+	}
+
+	void poll_controls()
+	{
+		prL = GetAsyncKeyState(VK_LEFT);
+		prR = GetAsyncKeyState(VK_RIGHT);
 	}
 
 public:
@@ -169,6 +175,8 @@ public:
 				if (can_down())
 				{
 					SActive.y++;
+					if(!can_down())
+						down_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(500);
 				}
 				else //cannot move down, LOCK!
 				{

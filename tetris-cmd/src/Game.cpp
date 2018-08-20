@@ -6,7 +6,7 @@
 #include <iostream>
 #include <chrono>
 #include <thread>
-#include "Windows.h"
+#include "windows.h"
 
 #include "char_info_utils.h"
 #include "Tetro.h"
