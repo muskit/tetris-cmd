@@ -32,4 +32,4 @@
 *.app
 
 # .vs folder takes up a lot of space!
-.vs/
+/.vs
