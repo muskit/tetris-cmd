@@ -30,3 +30,6 @@
 *.exe
 *.out
 *.app
+
+# .vs folder takes up a lot of space!
+.vs/
