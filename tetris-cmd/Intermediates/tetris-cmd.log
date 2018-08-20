@@ -1,0 +1,36 @@
+﻿C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\VC\VCTargets\Microsoft.CppBuild.targets(376,5): warning MSB8004: Intermediate Directory does not end with a trailing slash.  This build instance will add the slash as it is required to allow proper evaluation of the Intermediate Directory.
+C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\VC\VCTargets\Microsoft.CppBuild.targets(377,5): warning MSB8004: Output Directory does not end with a trailing slash.  This build instance will add the slash as it is required to allow proper evaluation of the Output Directory.
+  Game.cpp
+c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\char_info_utils.h(20): warning C4018: '<': signed/unsigned mismatch
+c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\char_info_utils.h(30): warning C4018: '<': signed/unsigned mismatch
+c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetro.h(20): warning C4309: 'argument': truncation of constant value
+c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetro.h(24): warning C4309: 'argument': truncation of constant value
+c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetro.h(25): warning C4309: 'argument': truncation of constant value
+c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetro.h(29): warning C4309: 'argument': truncation of constant value
+c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetro.h(30): warning C4309: 'argument': truncation of constant value
+c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetro.h(34): warning C4309: 'argument': truncation of constant value
+c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetro.h(35): warning C4309: 'argument': truncation of constant value
+c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetro.h(39): warning C4309: 'argument': truncation of constant value
+c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetro.h(40): warning C4309: 'argument': truncation of constant value
+c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetro.h(44): warning C4309: 'argument': truncation of constant value
+c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetro.h(45): warning C4309: 'argument': truncation of constant value
+c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetro.h(49): warning C4309: 'argument': truncation of constant value
+c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetro.h(50): warning C4309: 'argument': truncation of constant value
+c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetris.h(26): warning C4305: 'initializing': truncation from 'int' to 'uint8_t'
+c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetris.h(26): warning C4309: 'initializing': truncation of constant value
+c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetris.h(99): warning C4244: 'argument': conversion from '_Rep' to 'unsigned int', possible loss of data
+          with
+          [
+              _Rep=__int64
+          ]
+c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\game.cpp(37): warning C4309: 'argument': truncation of constant value
+c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\game.cpp(44): warning C4309: 'argument': truncation of constant value
+c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\game.cpp(49): warning C4309: 'argument': truncation of constant value
+c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\game.cpp(50): warning C4309: 'argument': truncation of constant value
+c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\game.cpp(83): warning C4018: '<': signed/unsigned mismatch
+  Generating code
+  16 of 194 functions ( 8.2%) were compiled, the rest were copied from previous compilation.
+    1 functions were new in current compilation
+    1 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  tetris-cmd.vcxproj -> C:\Users\Alex\Documents\VSProjs\tetris-cmd\tetris-cmd\Release\Win32\bin\tetris-cmd.exe
