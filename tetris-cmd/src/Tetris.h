@@ -15,6 +15,7 @@ using namespace std::chrono_literals;
 class Tetris
 {
 private:
+	bool started = false;
 	bool lost = false;
 	uint64_t score = 0;
 
@@ -22,13 +23,21 @@ private:
 	uint8_t next; //next piece, to preview
 	uint8_t bag[7] = { 0,1,2,3,4,5,6 };
 	uint8_t bag_index = 0;
-
 	bool active = false;
+
+	// input controls
+	bool prR = false;
+	bool prL = false;
+	bool prCW = false;
+	bool prCCW = false;
+	bool prHard = false;
+	bool prHold = false;
+	bool prSoft = false;
+	bool prPause = false;
 
 	// TIMING
 	int64_t interval = 250; // how long it takes (ms) until tetromino must go down, will change with difficulty
-
-	std::chrono::time_point<std::chrono::steady_clock> down_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(interval);
+	std::chrono::time_point<std::chrono::steady_clock> down_time;
 	
 	// Put the SActive onto activefield
 	void SActive_activefield()
@@ -61,6 +70,19 @@ private:
 					playfield[SActive.x + x][SActive.y + y] = SActive.tetro[x][y];
 			}
 		}
+	}
+
+	// shuffle tetrominos bag array
+	void inline shuffle_bag()
+	{
+		for (size_t i = 0; i < 6; i++)
+		{
+			size_t j = i + rand() / (RAND_MAX / (7 - i) + 1);
+			int t = bag[j];
+			bag[j] = bag[i];
+			bag[i] = t;
+		}
+		bag_index = 0;
 	}
 
 public:
@@ -112,21 +134,29 @@ public:
 	bool has_lost() { return lost; }
 	uint8_t get_next() { return next; }
 
-	// shuffle tetrominos bag array
-	void inline shuffle_bag()
+	void start()
 	{
-		for (size_t i = 0; i < 6; i++)
-		{
-			size_t j = i + rand() / (RAND_MAX / (7 - i) + 1);
-			int t = bag[j];
-			bag[j] = bag[i];
-			bag[i] = t;
-		}
-		bag_index = 0;
+		// seed
+		srand(std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count());
+
+		// clear fields
+		charinfo_clear(*playfield, 14 * 40);
+		charinfo_clear(*activefield, 14 * 40);
+
+		shuffle_bag();
+
+		next = bag[bag_index++];
+
+		down_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(interval);
+
+		started = true;
 	}
 
 	void update()
 	{
+		if (!started)
+			return;
+
 		if (bag_index >= 6)
 			shuffle_bag();
 
@@ -172,20 +202,6 @@ public:
 			SActive_activefield();
 			active = true;
 		}
-	}
-
-	Tetris()
-	{
-		// seed
-		srand(std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count());
-
-		// clear fields
-		charinfo_clear(*playfield, 14 * 40);
-		charinfo_clear(*activefield, 14 * 40);
-
-		shuffle_bag();
-
-		next = bag[bag_index++];
 	}
 };
 

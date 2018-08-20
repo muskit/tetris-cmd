@@ -3,21 +3,21 @@ C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\VC\VCT
   Game.cpp
 c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\char_info_utils.h(20): warning C4018: '<': signed/unsigned mismatch
 c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\char_info_utils.h(30): warning C4018: '<': signed/unsigned mismatch
-c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetro.h(20): warning C4309: 'argument': truncation of constant value
-c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetro.h(24): warning C4309: 'argument': truncation of constant value
-c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetro.h(25): warning C4309: 'argument': truncation of constant value
-c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetro.h(29): warning C4309: 'argument': truncation of constant value
-c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetro.h(30): warning C4309: 'argument': truncation of constant value
-c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetro.h(34): warning C4309: 'argument': truncation of constant value
-c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetro.h(35): warning C4309: 'argument': truncation of constant value
-c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetro.h(39): warning C4309: 'argument': truncation of constant value
-c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetro.h(40): warning C4309: 'argument': truncation of constant value
-c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetro.h(44): warning C4309: 'argument': truncation of constant value
-c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetro.h(45): warning C4309: 'argument': truncation of constant value
-c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetro.h(49): warning C4309: 'argument': truncation of constant value
-c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetro.h(50): warning C4309: 'argument': truncation of constant value
-c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetris.h(111): warning C4244: 'return': conversion from 'int64_t' to 'float', possible loss of data
-c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetris.h(180): warning C4244: 'argument': conversion from '_Rep' to 'unsigned int', possible loss of data
+c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetro.h(22): warning C4309: 'argument': truncation of constant value
+c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetro.h(26): warning C4309: 'argument': truncation of constant value
+c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetro.h(27): warning C4309: 'argument': truncation of constant value
+c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetro.h(31): warning C4309: 'argument': truncation of constant value
+c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetro.h(32): warning C4309: 'argument': truncation of constant value
+c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetro.h(36): warning C4309: 'argument': truncation of constant value
+c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetro.h(37): warning C4309: 'argument': truncation of constant value
+c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetro.h(41): warning C4309: 'argument': truncation of constant value
+c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetro.h(42): warning C4309: 'argument': truncation of constant value
+c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetro.h(46): warning C4309: 'argument': truncation of constant value
+c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetro.h(47): warning C4309: 'argument': truncation of constant value
+c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetro.h(51): warning C4309: 'argument': truncation of constant value
+c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetro.h(52): warning C4309: 'argument': truncation of constant value
+c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetris.h(133): warning C4244: 'return': conversion from 'int64_t' to 'float', possible loss of data
+c:\users\alex\documents\vsprojs\tetris-cmd\tetris-cmd\src\tetris.h(140): warning C4244: 'argument': conversion from '_Rep' to 'unsigned int', possible loss of data
           with
           [
               _Rep=__int64

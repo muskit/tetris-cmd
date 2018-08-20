@@ -14,6 +14,8 @@ typedef struct _STetro
 	uint8_t y = 18;
 } STetro;
 
+
+// TODO: make each array an STetro
 namespace Tetro
 {
 	const CHAR_INFO I[4][4] = { { char_info(' '), char_info(' '), char_info(' '), char_info(' ') },

@@ -134,7 +134,7 @@ int main()
 	auto fr_end = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<float> fr_duration;
 
-	put_hud();
+	tetris.start();
 
 	while (!tetris.has_lost())
 	{
@@ -149,7 +149,7 @@ int main()
 
 		put_string(0, 0, "FPS: " + std::to_string(1.0f / fr_duration.count()));
 
-		put_string(0, 2, "Down elapsed: " + std::to_string(tetris.down_elapsed.count()));
+		put_string(0, 2, "Interval: " + std::to_string(tetris.get_interval()));
 		put_string(0, 3, "can_down: " + std::to_string(tetris.can_down()));
 		put_string(0, 4, "can_left: " + std::to_string(tetris.can_left()));
 		put_string(0, 5, "can_right: " + std::to_string(tetris.can_right()));
@@ -165,6 +165,10 @@ int main()
 	}
 	CloseHandle(hConsole);
 
-	std::cout << "Finished.\n";
-	std::this_thread::sleep_for(1s);
+	std::cout << std::string(8, '\n');
+	std::cout << "Your score was " << tetris.get_score() << '\n';
+	std::cout << "Thanks for playing Tetris!\n";
+	std::cout << "Made in Vietnam and USA.\n\n";
+	std::cout << "clone by muskit\n2018\n\n";
+	std::this_thread::sleep_for(3s);
 }
