@@ -180,8 +180,12 @@ private:
 				if (can_down())
 				{
 					SActive.y++;
-					interval = interval / 20;
-					down_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(interval);
+					moved = true;
+					if (can_down())
+					{
+						interval = interval / 20;
+						down_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(interval);
+					}
 					hldSoft = true;
 				}
 			}
