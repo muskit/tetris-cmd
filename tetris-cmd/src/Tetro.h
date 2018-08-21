@@ -5,57 +5,85 @@
 #include "Windows.h"
 #include "char_info_utils.h"
 
-typedef struct _STetro
+typedef struct STetro
 {
 	CHAR_INFO tetro[4][4];
 
-	// starting position on field
 	uint8_t x = 7;
 	uint8_t y = 18;
+
+	uint8_t dim = 4;
+
+	char letter;
+
+	STetro(const CHAR_INFO charinfo[4][4], char ltr = ' ', bool isthree = false)
+	{
+		letter = ltr;
+		if (isthree)
+		{
+			dim = 3;
+		}
+		for (int y = 0; y < 4; y++)
+		{
+			for (int x = 0; x < 4; x++)
+			{
+				tetro[x][y] = charinfo[y][x];
+			}
+		}
+	}
+
+	STetro() {}
+
 } STetro;
 
 
 // TODO: make each array an STetro
 namespace Tetro
 {
-	const CHAR_INFO I[4][4] = { { char_info(' '), char_info(' '), char_info(' '), char_info(' ') },
+	const CHAR_INFO _I[4][4] = { { char_info(' '), char_info(' '), char_info(' '), char_info(' ') },
 	                            { char_info(178, 0b11), char_info(178, 0b11), char_info(178, 0b11), char_info(178, 0b11) },
 	                            { char_info(' '), char_info(' '), char_info(' '), char_info(' ') },
 						        { char_info(' '), char_info(' '), char_info(' '), char_info(' ') } };
 
-	const CHAR_INFO L[4][4] = { { char_info(' '), char_info(' '), char_info(178, 0b110), char_info(' ') },
+	const CHAR_INFO _L[4][4] = { { char_info(' '), char_info(' '), char_info(178, 0b110), char_info(' ') },
 	                            { char_info(178, 0b110), char_info(178, 0b110), char_info(178, 0b110), char_info(' ') },
 	                            { char_info(' '), char_info(' '), char_info(' '), char_info(' ') },
 	                            { char_info(' '), char_info(' '), char_info(' '), char_info(' ') } };
 
-	const CHAR_INFO J[4][4] = { { char_info(178,1), char_info(' '), char_info(' '), char_info(' ') },
+	const CHAR_INFO _J[4][4] = { { char_info(178,1), char_info(' '), char_info(' '), char_info(' ') },
 	                            { char_info(178,1), char_info(178,1), char_info(178,1), char_info(' ') },
 	                            { char_info(' '), char_info(' '), char_info(' '), char_info(' ') },
 	                            { char_info(' '), char_info(' '), char_info(' '), char_info(' ') } };
 
-	const CHAR_INFO T[4][4] = { { char_info(' '), char_info(178, 0b101), char_info(' '), char_info(' ') },
+	const CHAR_INFO _T[4][4] = { { char_info(' '), char_info(178, 0b101), char_info(' '), char_info(' ') },
 	                            { char_info(178, 0b101), char_info(178, 0b101), char_info(178, 0b101), char_info(' ') },
 	                            { char_info(' '), char_info(' '), char_info(' '), char_info(' ') },
 	                            { char_info(' '), char_info(' '), char_info(' '), char_info(' ') } };
 
-	const CHAR_INFO S[4][4] = { { char_info(' '), char_info(178, 0b10), char_info(178, 0b10), char_info(' ') },
+	const CHAR_INFO _S[4][4] = { { char_info(' '), char_info(178, 0b10), char_info(178, 0b10), char_info(' ') },
 	                            { char_info(178, 0b10), char_info(178, 0b10), char_info(' '), char_info(' ') },
 	                            { char_info(' '), char_info(' '), char_info(' '), char_info(' ') },
 	                            { char_info(' '), char_info(' '), char_info(' '), char_info(' ') } };
 
-	const CHAR_INFO Z[4][4] = { { char_info(178, 0b100), char_info(178, 0b100), char_info(' '), char_info(' ') },
+	const CHAR_INFO _Z[4][4] = { { char_info(178, 0b100), char_info(178, 0b100), char_info(' '), char_info(' ') },
 	                            { char_info(' '), char_info(178, 0b100), char_info(178, 0b100), char_info(' ') },
 	                            { char_info(' '), char_info(' '), char_info(' '), char_info(' ') },
 	                            { char_info(' '), char_info(' '), char_info(' '), char_info(' ') } };
 
-	const CHAR_INFO O[4][4] = { { char_info(' '), char_info(178, 0b1110), char_info(178, 0b1110), char_info(' ') },
+	const CHAR_INFO _O[4][4] = { { char_info(' '), char_info(178, 0b1110), char_info(178, 0b1110), char_info(' ') },
 	                            { char_info(' '), char_info(178, 0b1110), char_info(178, 0b1110), char_info(' ') },
 	                            { char_info(' '), char_info(' '), char_info(' '), char_info(' ') },
 	                            { char_info(' '), char_info(' '), char_info(' '), char_info(' ') } };
 
-	const CHAR_INFO(*tetro[7])[4][4] = { &I, &L, &J, &T, &S, &Z, &O };
-	
-	COORD size = coord(4, 4);
+	const STetro I(_I, 'I');
+	const STetro L(_L, 'L', true);
+	const STetro J(_J, 'J', true);
+	const STetro T(_T, 'T', true);
+	const STetro S(_S, 'S', true);
+	const STetro Z(_Z, 'Z', true);
+	const STetro O(_O, 'O', true);
+
+	const STetro tetro[7] = { I, L, J, T, S, Z, O };
 }
 
 // Given a tetromino in 4x4 array and orientation value, return an STetro with
@@ -69,6 +97,54 @@ STetro get_STetro(const CHAR_INFO tet[4][4])
 		{
 			result.tetro[x][y] = tet[y][x];
 		}
+	}
+	return result;
+}
+
+// Return STetro given, clockwise.
+STetro cw(STetro a)
+{
+	if (a.letter == 'O')
+		return a;
+
+	STetro result;
+	charinfo_clear(*result.tetro, 4 * 4);
+	result.x = a.x;
+	result.y = a.y;
+	result.dim = a.dim;
+
+	uint8_t ry = result.dim - 1;
+
+	for (int y = 0; y < result.dim; y++)
+	{
+		for (int x = 0; x < result.dim; x++)
+		{
+			result.tetro[x][y] = a.tetro[y][ry--];
+		}
+		ry = result.dim - 1;
+	}
+	return result;
+}
+// Return given STetro, counter-clockwise.
+STetro ccw(STetro a)
+{
+	if (a.letter == 'O')
+		return a;
+
+	STetro result;
+	charinfo_clear(*result.tetro, 4 * 4);
+	result.x = a.x;
+	result.y = a.y;
+	result.dim = a.dim;
+
+	uint8_t rx = result.dim - 1;
+	for (int y = 0; y < result.dim; y++)
+	{
+		for (int x = 0; x < result.dim; x++)
+		{
+			result.tetro[x][y] = a.tetro[rx][x];
+		}
+		rx--;
 	}
 	return result;
 }

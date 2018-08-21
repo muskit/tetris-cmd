@@ -21,7 +21,7 @@
     <ClInclude Include="src\Tetris.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="char_info_utils.h">
+    <ClInclude Include="src\char_info_utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

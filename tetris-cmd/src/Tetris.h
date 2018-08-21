@@ -3,7 +3,7 @@
 #define Tetris_h
 
 /**
-  * Utility/game logic. update() will act as the "main game loop."
+  * The Tetris engine. In main(), have Tetris.update() run every loop.
   */
 
 #include "Windows.h"
@@ -18,6 +18,7 @@ private:
 	bool started = false;
 	bool lost = false;
 	uint64_t score = 0;
+	uint16_t level = 1;
 
 	uint8_t hold; //tetro[hold] value of held piece
 	uint8_t next; //next piece, to preview
@@ -26,18 +27,21 @@ private:
 	bool active = false;
 
 	// input controls
-	bool prR = false;
-	bool prL = false;
-	bool prCW = false;
-	bool prCCW = false;
-	bool prHard = false;
-	bool prHold = false;
-	bool prSoft = false;
-	bool prPause = false;
+	bool hldR = false;
+	bool hldL = false;
+	bool hldCW = false;
+	bool hldCCW = false;
+	bool hldHard = false;
+	bool hldHold = false;
+	bool hldSoft = false;
+	bool hldPause = false;
+
+	bool moved = false;
 
 	// TIMING
 	int64_t interval = 1000; // how long it takes (ms) until tetromino must go down, will change with difficulty
 	std::chrono::time_point<std::chrono::steady_clock> down_time;
+	std::chrono::duration<float, std::milli> duration; // general purpose duration object
 	
 	// Put the SActive onto activefield
 	void SActive_activefield()
@@ -73,22 +77,134 @@ private:
 	}
 
 	// shuffle tetrominos bag array
-	void inline shuffle_bag()
+	void shuffle_bag()
 	{
-		for (size_t i = 0; i < 6; i++)
+		int i, j, temp;
+		for (i = 6; i > 0; i--)
 		{
-			size_t j = i + rand() / (RAND_MAX / (7 - i) + 1);
-			int t = bag[j];
-			bag[j] = bag[i];
-			bag[i] = t;
+			j = rand() % (i + 1);
+			temp = bag[i];
+			bag[i] = bag[j];
+			bag[j] = temp;
 		}
-		bag_index = 0;
 	}
 
-	void poll_controls()
+	// process controls during active mode (move blocks? hold? etc.)
+	void active_controls()
 	{
-		prL = GetAsyncKeyState(VK_LEFT);
-		prR = GetAsyncKeyState(VK_RIGHT);
+		// MOVE //
+		if ((GetAsyncKeyState(VK_LEFT) & 32768) >> 15) //left
+		{
+			if (can_left())
+			{
+				if (!hldL)
+				{
+					hldL = true;
+					SActive.x--;
+					moved = true;
+				}
+			}
+		}
+		else
+		{
+			hldL = false;
+		}
+		if ((GetAsyncKeyState(VK_RIGHT) & 32768) >> 15) // right
+		{
+			if (can_right())
+			{
+				if (!hldR)
+				{
+					hldR = true;
+					SActive.x++;
+					moved = true;
+				}
+			}
+		}
+		else
+		{
+			hldR = false;
+		}
+
+		// ROTATION //
+		if ((GetAsyncKeyState(0x58) & 32768) >> 15) // CW, [X]
+		{
+			if (can_cw())
+			{
+				if (!hldCW)
+				{
+					SActive = cw(SActive);
+					moved = true;
+					hldCW = true;
+				}
+			}
+		}
+		else
+		{
+			hldCW = false;
+		}
+		if ((GetAsyncKeyState(0x5A) & 32768) >> 15) // CCW, [Z]
+		{
+			if (can_ccw())
+			{
+				if (!hldCCW)
+				{
+					SActive = ccw(SActive);
+					moved = true;
+					hldCCW = true;
+				}
+			}
+		}
+		else
+		{
+			hldCCW = false;
+		}
+
+		// DROPS //
+		if ((GetAsyncKeyState(VK_SPACE) & 32768) >> 15) // hard, [SPACE]
+		{
+			if (!hldHard)
+			{
+				hldHard = true;
+				while (can_down())
+					SActive.y++;
+				down_time = std::chrono::high_resolution_clock::now() + std::chrono::microseconds(100);
+			}
+		}
+		else
+			hldHard = false;
+		if ((GetAsyncKeyState(VK_DOWN) & 32768) >> 15) // soft, [DOWN ARROW]
+		{
+			if (!hldSoft)
+			{
+				if (can_down())
+				{
+					SActive.y++;
+					interval = interval / 20;
+					down_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(interval);
+					hldSoft = true;
+				}
+			}
+		}
+		else
+		{
+			if (hldSoft)
+			{
+				interval = get_interval(level);
+				if(can_down())
+					down_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(interval);
+			}
+			hldSoft = false;
+		}
+	}
+	// controls available at any time
+	void passive_controls()
+	{
+		if (GetAsyncKeyState(VK_ESCAPE) & 32768)
+		{
+			// TODO: make pause instead of quit
+			lost = true;
+		}
 	}
 
 public:
@@ -102,18 +218,51 @@ public:
 	// player's moving blocks go here
 	CHAR_INFO activefield[14][40];
 
+	// show ghost piece
+	CHAR_INFO ghostfield[14][40];
+
 	// player's active piece
 	STetro SActive;
 
-	std::chrono::duration<float, std::milli> down_elapsed; // for test to see if it's time to down
+	// return a drop interval in milliseconds, given level
+	double get_interval (uint16_t a)
+	{
+		return pow((0.8 - ((a - 1) * 0.007)), a - 1)*1000;
+	}
 
 	bool can_right()
 	{
+		for (int y = 0; y < 4; y++)
+		{
+			for (int x = 0; x < 4; x++)
+			{
+				// don't check blank spots
+				if (SActive.tetro[x][y].Char.AsciiChar != ' ')
+				{
+					// check against the playfield
+					if ((playfield[SActive.x + x + 1][SActive.y + y].Char.AsciiChar != ' ') || (SActive.x + x == 13))
+						return false;
+				}
+			}
+		}
 		return true;
 	}
 
 	bool can_left()
 	{
+		for (int y = 0; y < 4; y++)
+		{
+			for (int x = 0; x < 4; x++)
+			{
+				// don't check blank spots
+				if (SActive.tetro[x][y].Char.AsciiChar != ' ')
+				{
+					// check against the playfield
+					if ((playfield[SActive.x + x - 1][SActive.y + y].Char.AsciiChar != ' ') || (SActive.x + x == 4))
+						return false;
+				}
+			}
+		}
 		return true;
 	}
 	bool can_down()
@@ -127,6 +276,44 @@ public:
 				{
 					// check against the playfield
 					if ((playfield[SActive.x + x][SActive.y + y + 1].Char.AsciiChar != ' ') || (SActive.y + y == 39))
+						return false;
+				}
+			}
+		}
+		return true;
+	}
+	bool can_cw()
+	{
+		STetro test = cw(SActive);
+		
+		for (int y = 0; y < 4; y++)
+		{
+			for (int x = 0; x < 4; x++)
+			{
+				// don't check blank spots
+				if (test.tetro[x][y].Char.AsciiChar != ' ')
+				{
+					// check against the playfield
+					if ((playfield[test.x + x][test.y + y].Char.AsciiChar != ' ') || ( (test.x+x > 13 || test.x+x < 4) || ( test.y+y > 39 || test.y+y < 20 ) ))
+						return false;
+				}
+			}
+		}
+		return true;
+	}
+	bool can_ccw()
+	{
+		STetro test = ccw(SActive);
+
+		for (int y = 0; y < 4; y++)
+		{
+			for (int x = 0; x < 4; x++)
+			{
+				// don't check blank spots
+				if (test.tetro[x][y].Char.AsciiChar != ' ')
+				{
+					// check against the playfield
+					if ((playfield[test.x + x][test.y + y].Char.AsciiChar != ' ') || ((test.x + x > 13 || test.x + x < 4) || (test.y + y > 39 || test.y + y < 20)))
 						return false;
 				}
 			}
@@ -148,12 +335,12 @@ public:
 		// clear fields
 		charinfo_clear(*playfield, 14 * 40);
 		charinfo_clear(*activefield, 14 * 40);
+		charinfo_clear(*ghostfield, 14 * 40);
 
 		shuffle_bag();
-
 		next = bag[bag_index++];
 
-		down_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(interval);
+		interval = get_interval(level);
 
 		started = true;
 	}
@@ -163,20 +350,42 @@ public:
 		if (!started)
 			return;
 
-		if (bag_index >= 6)
+		passive_controls();
+		if (lost)
+			return;
+
+		if (bag_index > 6)
+		{
 			shuffle_bag();
+			bag_index = 0;
+		}
 
 		if (active)
 		{
-			down_elapsed = std::chrono::high_resolution_clock::now() - down_time;
-			if (down_elapsed.count() >= 0) // time to down?
+			bool can_down_previously = can_down();
+
+			active_controls();
+
+			if (moved) //only runs after player moved
 			{
-				down_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(interval);
+				moved = false;
+				if (!can_down())
+					down_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(500);
+				if(can_down() && !can_down_previously)
+					down_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(interval);
+			}
+
+			duration = std::chrono::high_resolution_clock::now() - down_time;
+
+			if (duration.count() >= 0) // time to down?
+			{
 				if (can_down())
 				{
 					SActive.y++;
 					if(!can_down())
 						down_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(500);
+					else
+						down_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(interval);
 				}
 				else //cannot move down, LOCK!
 				{
@@ -189,8 +398,9 @@ public:
 		}
 		else
 		{
-			SActive = get_STetro(*Tetro::tetro[next]);
-			next = bag_index++;
+			SActive = Tetro::tetro[next];
+			next = bag[bag_index++];
+			down_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(interval);
 			if (!can_down()) // did we lose?
 			{
 				lost = true;
@@ -210,6 +420,10 @@ public:
 			SActive_activefield();
 			active = true;
 		}
+
+		get_STetro(Tetro::_I);
+		STetro I = STetro(Tetro::_I);
+
 	}
 };
 

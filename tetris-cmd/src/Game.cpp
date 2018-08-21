@@ -14,7 +14,7 @@
 
 using namespace std::chrono_literals;
 
-const uint8_t CONSOLE_WIDTH = 120;
+const uint8_t CONSOLE_WIDTH = 60;
 const uint8_t CONSOLE_HEIGHT = 30;
 CHAR_INFO screen[CONSOLE_HEIGHT][CONSOLE_WIDTH]; // buffer to draw
 
@@ -26,32 +26,33 @@ COORD size = coord(CONSOLE_WIDTH, CONSOLE_HEIGHT);
 Tetris tetris;
 
 /** RENDER FUNCTIONS (screen[y][x]) */
-void put_hud()
+
+// Puts a std::string into screen.
+void put_string(int x, int y, std::string str)
 {
-	for (int y = -1; y < 21; y++)
+	for (int i = 0; i < str.size(); i++)
 	{
-		if (y == -1)
+		screen[y][x + i] = char_info(str[i], 0b111);
+	}
+}
+// Puts a CHAR_INFO into screen.
+void put_charinfo(int x, int y, CHAR_INFO c = char_info(' ', 0))
+{
+	screen[y][x] = c;
+}
+// Put a STetro into screen.
+void put_STetro(int sx, int sy, STetro st)
+{
+	for (int y = 0; y < 4; y++)
+	{
+		for (int x = 0; x < 4; x++)
 		{
-			for (int x = -1; x < 11; x++)
-			{
-				if (x <= 1 || x >= 8)
-					screen[playfield_origin.Y + y][playfield_origin.X + x] = char_info(177, 0b111);
-			}
-		}
-		else if (y == 20)
-		{
-			for (int x = -1; x < 11; x++)
-			{
-				screen[playfield_origin.Y + y][playfield_origin.X + x] = char_info(177, 0b111);
-			}
-		}
-		else
-		{
-			screen[playfield_origin.Y + y][playfield_origin.X - 1] = char_info(177, 0b111);
-			screen[playfield_origin.Y + y][playfield_origin.X + 10] = char_info(177, 0b111);
+			if (st.tetro[x][y].Char.AsciiChar != ' ')
+				screen[y + sy][x + sx] = st.tetro[x][y];
 		}
 	}
 }
+
 // Put playfield onto screen, its origin from COORD playfield_origin
 void put_playfield()
 {
@@ -78,7 +79,6 @@ void put_activefield()
 		}
 	}
 }
-
 void put_background()
 {
 	for (int y = 0; y <= 19; y++)
@@ -89,31 +89,41 @@ void put_background()
 		}
 	}
 }
-
-// Puts a std::string into screen.
-void put_string(int x, int y, std::string str)
+void put_hud()
 {
-	for (int i = 0; i < str.size(); i++)
+	for (int y = -1; y < 21; y++)
 	{
-		screen[y][x + i] = char_info(str[i], 0b111);
-	}
-}
-// Puts a CHAR_INFO into screen.
-void put_charinfo(int x, int y, CHAR_INFO c = char_info(' ', 0))
-{
-	screen[y][x] = c;
-}
-// Put a STetro into screen.
-void put_STetro(int sx, int sy, STetro st)
-{
-	for (int y = 0; y < 4; y++)
-	{
-		for (int x = 0; x < 4; x++)
+		if (y == -1)
 		{
-			if(st.tetro[x][y].Char.AsciiChar != ' ')
-				screen[y + sy][x + sx] = st.tetro[x][y];
+			for (int x = -1; x < 11; x++)
+			{
+				if (x <= 1 || x >= 8)
+					screen[playfield_origin.Y + y][playfield_origin.X + x] = char_info(177, 0b111);
+			}
+		}
+		else if (y == 20)
+		{
+			for (int x = -1; x < 11; x++)
+			{
+				screen[playfield_origin.Y + y][playfield_origin.X + x] = char_info(177, 0b111);
+			}
+		}
+		else
+		{
+			screen[playfield_origin.Y + y][playfield_origin.X - 1] = char_info(177, 0b111);
+			screen[playfield_origin.Y + y][playfield_origin.X + 10] = char_info(177, 0b111);
 		}
 	}
+
+	// NEXT PIECE
+	put_string(playfield_origin.X + 14, playfield_origin.Y + 1, "\xB0\xB0    \xB0\xB0");
+	put_string(playfield_origin.X + 14, playfield_origin.Y + 2, "\xB0      \xB0");
+	put_string(playfield_origin.X + 14, playfield_origin.Y + 3, "\xB0      \xB0");
+	put_string(playfield_origin.X + 14, playfield_origin.Y + 4, "\xB0      \xB0");
+	put_string(playfield_origin.X + 14, playfield_origin.Y + 5, "\xB0      \xB0");
+	put_string(playfield_origin.X + 14, playfield_origin.Y + 6, "\xB0\xB0\xB0\xB0\xB0\xB0\xB0\xB0");
+	put_string(playfield_origin.X + 16, playfield_origin.Y + 1, "NEXT");
+	put_STetro(playfield_origin.X + 16, playfield_origin.Y + 3, Tetro::tetro[tetris.get_next()]);
 }
 
 //////////////////////////////////////////////////////////////////
@@ -140,6 +150,7 @@ int main()
 	{
 		charinfo_clear(*screen, CONSOLE_WIDTH*CONSOLE_HEIGHT);
 		fr_start = std::chrono::high_resolution_clock::now();
+
 		tetris.update();
 
 		// RENDER //
@@ -157,7 +168,10 @@ int main()
 		put_string(0, 10, "SActive.x = " + std::to_string(tetris.SActive.x));
 		put_string(0, 11, "SActive.y = " + std::to_string(tetris.SActive.y));
 
-		put_STetro(playfield_origin.X + 15, playfield_origin.Y, get_STetro(*Tetro::tetro[tetris.get_next()]));
+		put_string(0, 13, "left: " + (std::to_string((GetAsyncKeyState(VK_LEFT) & 32768) >> 15)));
+		put_string(0, 14, "right: " + (std::to_string((GetAsyncKeyState(VK_RIGHT) & 32768) >> 15)));
+
+		put_STetro(20, 15, tetris.SActive);
 
 		WriteConsoleOutput(hConsole, *screen, size, coord(0, 0), &srect);
 		fr_end = std::chrono::high_resolution_clock::now();
@@ -167,8 +181,8 @@ int main()
 
 	std::cout << std::string(8, '\n');
 	std::cout << "Your score was " << tetris.get_score() << '\n';
-	std::cout << "Thanks for playing Tetris!\n";
+	std::cout << "Thanks for playing tetris-cmd,\n";
+	std::cout << "a Tetris clone by muskit\n\n";
 	std::cout << "Made in Vietnam and USA.\n\n";
-	std::cout << "clone by muskit\n2018\n\n";
-	std::this_thread::sleep_for(3s);
+	std::cin.get();
 }

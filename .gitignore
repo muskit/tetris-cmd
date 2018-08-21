@@ -31,5 +31,7 @@
 *.out
 *.app
 
-# .vs folder takes up a lot of space!
+# directories
 /.vs
+.vs/
+.intermediates/
