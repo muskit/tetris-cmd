@@ -14,11 +14,11 @@ typedef struct STetro
 
 	uint8_t dim = 4;
 
-	char letter;
+	short id;
 
-	STetro(const CHAR_INFO charinfo[4][4], char ltr = ' ', bool isthree = false)
+	STetro(const CHAR_INFO charinfo[4][4], uint8_t num, bool isthree = false)
 	{
-		letter = ltr;
+		id = num;
 		if (isthree)
 		{
 			dim = 3;
@@ -75,13 +75,13 @@ namespace Tetro
 	                            { char_info(' '), char_info(' '), char_info(' '), char_info(' ') },
 	                            { char_info(' '), char_info(' '), char_info(' '), char_info(' ') } };
 
-	const STetro I(_I, 'I');
-	const STetro L(_L, 'L', true);
-	const STetro J(_J, 'J', true);
-	const STetro T(_T, 'T', true);
-	const STetro S(_S, 'S', true);
-	const STetro Z(_Z, 'Z', true);
-	const STetro O(_O, 'O', true);
+	const STetro I(_I, 0);
+	const STetro L(_L, 1, true);
+	const STetro J(_J, 2, true);
+	const STetro T(_T, 3, true);
+	const STetro S(_S, 4, true);
+	const STetro Z(_Z, 5, true);
+	const STetro O(_O, 6, true);
 
 	const STetro tetro[7] = { I, L, J, T, S, Z, O };
 }
@@ -104,7 +104,7 @@ STetro get_STetro(const CHAR_INFO tet[4][4])
 // Return STetro given, clockwise.
 STetro cw(STetro a)
 {
-	if (a.letter == 'O')
+	if (a.id == 6)
 		return a;
 
 	STetro result;
@@ -128,7 +128,7 @@ STetro cw(STetro a)
 // Return given STetro, counter-clockwise.
 STetro ccw(STetro a)
 {
-	if (a.letter == 'O')
+	if (a.id == 6)
 		return a;
 
 	STetro result;

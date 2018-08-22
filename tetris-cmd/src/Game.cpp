@@ -20,7 +20,7 @@ CHAR_INFO screen[CONSOLE_HEIGHT][CONSOLE_WIDTH]; // buffer to draw
 
 SMALL_RECT srect = small_rect(0, 0, CONSOLE_WIDTH - 1, CONSOLE_HEIGHT - 1);
 
-COORD playfield_origin = coord(28, 3); // top-left coord to start drawing playfield (INSIDE the HUD)
+COORD playfield_origin = coord(35, 3); // top-left coord to start drawing playfield (INSIDE the HUD)
 COORD size = coord(CONSOLE_WIDTH, CONSOLE_HEIGHT);
 
 Tetris tetris;
@@ -124,6 +124,9 @@ void put_hud()
 	put_string(playfield_origin.X + 14, playfield_origin.Y + 6, "\xB0\xB0\xB0\xB0\xB0\xB0\xB0\xB0");
 	put_string(playfield_origin.X + 16, playfield_origin.Y + 1, "NEXT");
 	put_STetro(playfield_origin.X + 16, playfield_origin.Y + 3, Tetro::tetro[tetris.get_next()]);
+
+	put_STetro(playfield_origin.X - 6, playfield_origin.Y + 1, Tetro::tetro[tetris.get_hold()]);
+
 }
 
 //////////////////////////////////////////////////////////////////
@@ -164,14 +167,19 @@ int main()
 		put_string(0, 3, "can_down: " + std::to_string(tetris.can_down()));
 		put_string(0, 4, "can_left: " + std::to_string(tetris.can_left()));
 		put_string(0, 5, "can_right: " + std::to_string(tetris.can_right()));
+		put_string(0, 6, "can_cw: " + std::to_string(tetris.can_cw()));
+		put_string(0, 7, "can_ccw: " + std::to_string(tetris.can_ccw()));
 
 		put_string(0, 10, "SActive.x = " + std::to_string(tetris.SActive.x));
 		put_string(0, 11, "SActive.y = " + std::to_string(tetris.SActive.y));
 
 		put_string(0, 13, "left: " + (std::to_string((GetAsyncKeyState(VK_LEFT) & 32768) >> 15)));
 		put_string(0, 14, "right: " + (std::to_string((GetAsyncKeyState(VK_RIGHT) & 32768) >> 15)));
+		put_string(0, 15, "down: " + (std::to_string((GetAsyncKeyState(VK_DOWN) & 32768) >> 15)));
+		
+		put_string(0, 17, "allow_rot: " + (std::to_string(tetris.get_allowrot())));
 
-		put_STetro(20, 15, tetris.SActive);
+		put_string(playfield_origin.X - 6, playfield_origin.Y + 6, std::to_string(tetris.get_hold()));
 
 		WriteConsoleOutput(hConsole, *screen, size, coord(0, 0), &srect);
 		fr_end = std::chrono::high_resolution_clock::now();
@@ -184,5 +192,5 @@ int main()
 	std::cout << "Thanks for playing tetris-cmd,\n";
 	std::cout << "a Tetris clone by muskit\n\n";
 	std::cout << "Made in Vietnam and USA.\n\n";
-	std::cin.get();
+	std::this_thread::sleep_for(5s);
 }

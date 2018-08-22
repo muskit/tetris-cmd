@@ -20,11 +20,16 @@ private:
 	uint64_t score = 0;
 	uint16_t level = 1;
 
-	uint8_t hold; //tetro[hold] value of held piece
 	uint8_t next; //next piece, to preview
 	uint8_t bag[7] = { 0,1,2,3,4,5,6 };
 	uint8_t bag_index = 0;
+
+	char hold = -1; //tetro[hold] value of held piece
 	bool active = false;
+	bool moved = false;
+
+	bool allow_swap = true;
+	bool allow_rot = true;
 
 	// input controls
 	bool hldR = false;
@@ -36,7 +41,7 @@ private:
 	bool hldSoft = false;
 	bool hldPause = false;
 
-	bool moved = false;
+	
 
 	// TIMING
 	int64_t interval = 1000; // how long it takes (ms) until tetromino must go down, will change with difficulty
@@ -133,9 +138,13 @@ private:
 			{
 				if (!hldCW)
 				{
-					SActive = cw(SActive);
-					moved = true;
+					if (allow_rot)
+					{
+						SActive = cw(SActive);
+						moved = true;
+					}
 					hldCW = true;
+
 				}
 			}
 		}
@@ -149,8 +158,11 @@ private:
 			{
 				if (!hldCCW)
 				{
-					SActive = ccw(SActive);
-					moved = true;
+					if (allow_rot)
+					{
+						SActive = ccw(SActive);
+						moved = true;
+					}
 					hldCCW = true;
 				}
 			}
@@ -169,6 +181,7 @@ private:
 				while (can_down())
 					SActive.y++;
 				down_time = std::chrono::high_resolution_clock::now() + std::chrono::microseconds(100);
+				allow_rot = false;
 			}
 		}
 		else
@@ -200,6 +213,23 @@ private:
 			}
 			hldSoft = false;
 		}
+
+		if ((GetAsyncKeyState(0x43) & 32768) >> 15) // hold/swap, [C]
+		{
+			if (!hldHold && allow_swap)
+			{
+				hldHold = true;
+				allow_swap = false;
+				active = false;
+
+				char temp = 0;
+				temp = SActive.id;
+				SActive.id = hold;
+				hold = temp;
+			}
+		}
+		else
+			hldHold = false;
 	}
 	// controls available at any time
 	void passive_controls()
@@ -330,6 +360,8 @@ public:
 	float get_interval() { return interval; }
 	bool has_lost() { return lost; }
 	uint8_t get_next() { return next; }
+	char get_hold() { return hold;  }
+	bool get_allowrot() { return allow_rot; }
 
 	void start()
 	{
@@ -343,6 +375,7 @@ public:
 
 		shuffle_bag();
 		next = bag[bag_index++];
+		SActive.id = -1;
 
 		interval = get_interval(level);
 
@@ -364,46 +397,59 @@ public:
 			bag_index = 0;
 		}
 
+		duration = std::chrono::high_resolution_clock::now() - down_time;
 		if (active)
 		{
 			bool can_down_previously = can_down();
 
 			active_controls();
 
-			if (moved) //only runs after player moved
+			if (active)
 			{
-				moved = false;
-				if (!can_down())
-					down_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(500);
-				if(can_down() && !can_down_previously)
-					down_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(interval);
-			}
-
-			duration = std::chrono::high_resolution_clock::now() - down_time;
-
-			if (duration.count() >= 0) // time to down?
-			{
-				if (can_down())
+				if (moved) //only runs after player moved
 				{
-					SActive.y++;
-					if(!can_down())
+					moved = false;
+					if (!can_down())
 						down_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(500);
-					else
+					if (can_down() && !can_down_previously)
 						down_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(interval);
 				}
-				else //cannot move down, LOCK!
+
+				if (duration.count() >= 0) // time to down?
 				{
-					SActive_playfield();
-					charinfo_clear(*activefield, 14 * 40);
-					active = false;
+					if (can_down())
+					{
+						SActive.y++;
+						if (!can_down())
+							down_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(500);
+						else
+							down_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(interval);
+					}
+					else //cannot move down, LOCK!
+					{
+						SActive_playfield();
+						charinfo_clear(*activefield, 14 * 40);
+						SActive.id = -1;
+						active = false;
+						allow_swap = true;
+						allow_rot = true;
+					}
 				}
+				SActive_activefield();
 			}
-			SActive_activefield();
 		}
 		else
 		{
-			SActive = Tetro::tetro[next];
-			next = bag[bag_index++];
+			if (SActive.id == -1)
+			{
+				SActive = Tetro::tetro[next];
+				next = bag[bag_index++];
+			}
+			else
+			{
+				SActive = Tetro::tetro[SActive.id];
+			}
+
 			down_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(interval);
 			if (!can_down()) // did we lose?
 			{
@@ -425,8 +471,7 @@ public:
 			active = true;
 		}
 
-		get_STetro(Tetro::_I);
-		STetro I = STetro(Tetro::_I);
+		
 
 	}
 };
