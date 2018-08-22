@@ -46,6 +46,7 @@ private:
 	// TIMING
 	int64_t interval = 1000; // how long it takes (ms) until tetromino must go down, will change with difficulty
 	std::chrono::time_point<std::chrono::steady_clock> down_time;
+	std::chrono::time_point<std::chrono::steady_clock> spawn_time;
 	std::chrono::duration<float, std::milli> duration; // general purpose duration object
 	
 	// Put the SActive onto activefield
@@ -78,6 +79,16 @@ private:
 				if (SActive.tetro[x][y].Char.AsciiChar != 0 && SActive.tetro[x][y].Char.AsciiChar != ' ')
 					playfield[SActive.x + x][SActive.y + y] = SActive.tetro[x][y];
 			}
+		}
+	}
+
+	// Check playfield for any lines. 
+	void playfield_check()
+	{
+
+		for (int y = 39; y >= 20; y--)
+		{
+
 		}
 	}
 
@@ -428,6 +439,7 @@ public:
 					else //cannot move down, LOCK!
 					{
 						SActive_playfield();
+						playfield_check();
 						charinfo_clear(*activefield, 14 * 40);
 						SActive.id = -1;
 						active = false;

@@ -116,18 +116,27 @@ void put_hud()
 	}
 
 	// NEXT PIECE
-	put_string(playfield_origin.X + 16, playfield_origin.Y + 1, "NEXT");
 	put_string(playfield_origin.X + 14, playfield_origin.Y + 1, "\xB0\xB0    \xB0\xB0");
+	put_string(playfield_origin.X + 16, playfield_origin.Y + 1, "NEXT");
 	put_string(playfield_origin.X + 14, playfield_origin.Y + 2, "\xB0      \xB0");
 	put_string(playfield_origin.X + 14, playfield_origin.Y + 3, "\xB0      \xB0");
-	put_STetro(playfield_origin.X + 16, playfield_origin.Y + 3, Tetro::tetro[tetris.get_next()]);
 	put_string(playfield_origin.X + 14, playfield_origin.Y + 4, "\xB0      \xB0");
 	put_string(playfield_origin.X + 14, playfield_origin.Y + 5, "\xB0      \xB0");
 	put_string(playfield_origin.X + 14, playfield_origin.Y + 6, "\xB0\xB0\xB0\xB0\xB0\xB0\xB0\xB0");
+	put_STetro(playfield_origin.X + 16, playfield_origin.Y + 3, Tetro::tetro[tetris.get_next()]);
 
 	// HOLD PIECE
-	if(tetris.get_hold() != -1)
-		put_STetro(playfield_origin.X - 6, playfield_origin.Y + 1, Tetro::tetro[tetris.get_hold()]);
+	put_string(playfield_origin.X - 10, playfield_origin.Y, "\xB0\xB0    \xB0\xB0");
+	put_string(playfield_origin.X - 8, playfield_origin.Y, "HOLD");
+	put_string(playfield_origin.X - 10, playfield_origin.Y+1, "\xB0      \xB0");
+	put_string(playfield_origin.X - 10, playfield_origin.Y+2, "\xB0      \xB0");
+	put_string(playfield_origin.X - 10, playfield_origin.Y+3, "\xB0      \xB0");
+	put_string(playfield_origin.X - 10, playfield_origin.Y+4, "\xB0      \xB0");
+	put_string(playfield_origin.X - 10, playfield_origin.Y+5, "\xB0\xB0\xB0\xB0\xB0\xB0\xB0\xB0");
+	if (tetris.get_hold() != -1)
+	{
+		put_STetro(playfield_origin.X - 8, playfield_origin.Y + 2, Tetro::tetro[tetris.get_hold()]);
+	}
 
 }
 
@@ -153,8 +162,9 @@ int main()
 
 	while (!tetris.has_lost())
 	{
-		charinfo_clear(*screen, CONSOLE_WIDTH*CONSOLE_HEIGHT);
+
 		fr_start = std::chrono::high_resolution_clock::now();
+		charinfo_clear(*screen, CONSOLE_WIDTH*CONSOLE_HEIGHT);
 
 		tetris.update();
 
