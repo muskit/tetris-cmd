@@ -5,38 +5,6 @@
 #include "Windows.h"
 #include "char_info_utils.h"
 
-typedef struct STetro
-{
-	CHAR_INFO tetro[4][4];
-
-	uint8_t x = 7;
-	uint8_t y = 18;
-
-	uint8_t dim = 4;
-
-	short id;
-
-	STetro(const CHAR_INFO charinfo[4][4], uint8_t num, bool isthree = false)
-	{
-		id = num;
-		if (isthree)
-		{
-			dim = 3;
-		}
-		for (int y = 0; y < 4; y++)
-		{
-			for (int x = 0; x < 4; x++)
-			{
-				tetro[x][y] = charinfo[y][x];
-			}
-		}
-	}
-
-	STetro() {}
-
-} STetro;
-
-
 // TODO: make each array an STetro
 namespace Tetro
 {
@@ -74,8 +42,52 @@ namespace Tetro
 	                            { char_info(' '), char_info(178, 0b1110), char_info(178, 0b1110), char_info(' ') },
 	                            { char_info(' '), char_info(' '), char_info(' '), char_info(' ') },
 	                            { char_info(' '), char_info(' '), char_info(' '), char_info(' ') } };
+}
 
-	const STetro I(_I, 0);
+class STetro
+{
+public:
+	CHAR_INFO tetro[4][4];
+
+	uint8_t x = 7;
+	uint8_t y = 18;
+
+	uint8_t dim = 4;
+
+	short id = -1;
+
+	STetro(const CHAR_INFO charinfo[4][4], uint8_t num, bool isthree = false)
+	{
+		id = num;
+		if (isthree)
+		{
+			dim = 3;
+		}
+		for (int y = 0; y < 4; y++)
+		{
+			for (int x = 0; x < 4; x++)
+			{
+				tetro[x][y] = charinfo[y][x];
+			}
+		}
+	}
+	STetro()
+	{
+		//id = 0;
+		for (int y = 0; y < 4; y++)
+		{
+			for (int x = 0; x < 4; x++)
+			{
+				tetro[x][y] = Tetro::_I[y][x];
+			}
+		}
+	}
+
+};
+
+namespace Tetro
+{
+	const STetro I(_I, 0, false);
 	const STetro L(_L, 1, true);
 	const STetro J(_J, 2, true);
 	const STetro T(_T, 3, true);
@@ -112,6 +124,7 @@ STetro cw(STetro a)
 	result.x = a.x;
 	result.y = a.y;
 	result.dim = a.dim;
+	result.id = a.id;
 
 	uint8_t ry = result.dim - 1;
 
@@ -136,6 +149,7 @@ STetro ccw(STetro a)
 	result.x = a.x;
 	result.y = a.y;
 	result.dim = a.dim;
+	result.id = a.id;
 
 	uint8_t rx = result.dim - 1;
 	for (int y = 0; y < result.dim; y++)

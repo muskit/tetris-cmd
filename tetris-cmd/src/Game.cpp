@@ -116,16 +116,18 @@ void put_hud()
 	}
 
 	// NEXT PIECE
+	put_string(playfield_origin.X + 16, playfield_origin.Y + 1, "NEXT");
 	put_string(playfield_origin.X + 14, playfield_origin.Y + 1, "\xB0\xB0    \xB0\xB0");
 	put_string(playfield_origin.X + 14, playfield_origin.Y + 2, "\xB0      \xB0");
 	put_string(playfield_origin.X + 14, playfield_origin.Y + 3, "\xB0      \xB0");
+	put_STetro(playfield_origin.X + 16, playfield_origin.Y + 3, Tetro::tetro[tetris.get_next()]);
 	put_string(playfield_origin.X + 14, playfield_origin.Y + 4, "\xB0      \xB0");
 	put_string(playfield_origin.X + 14, playfield_origin.Y + 5, "\xB0      \xB0");
 	put_string(playfield_origin.X + 14, playfield_origin.Y + 6, "\xB0\xB0\xB0\xB0\xB0\xB0\xB0\xB0");
-	put_string(playfield_origin.X + 16, playfield_origin.Y + 1, "NEXT");
-	put_STetro(playfield_origin.X + 16, playfield_origin.Y + 3, Tetro::tetro[tetris.get_next()]);
 
-	put_STetro(playfield_origin.X - 6, playfield_origin.Y + 1, Tetro::tetro[tetris.get_hold()]);
+	// HOLD PIECE
+	if(tetris.get_hold() != -1)
+		put_STetro(playfield_origin.X - 6, playfield_origin.Y + 1, Tetro::tetro[tetris.get_hold()]);
 
 }
 
