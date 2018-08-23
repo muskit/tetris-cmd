@@ -4,6 +4,7 @@
 
 /**
   * The Tetris engine. In main(), have Tetris.update() run every loop.
+  * Excuse the Lasagna Code :)
   */
 
 #include "Windows.h"
@@ -41,8 +42,6 @@ private:
 	bool hldSoft = false;
 	bool hldPause = false;
 
-	
-
 	// TIMING
 	int64_t interval = 1000; // how long it takes (ms) until tetromino must go down, will change with difficulty
 	std::chrono::time_point<std::chrono::steady_clock> down_time;
@@ -79,16 +78,6 @@ private:
 				if (SActive.tetro[x][y].Char.AsciiChar != 0 && SActive.tetro[x][y].Char.AsciiChar != ' ')
 					playfield[SActive.x + x][SActive.y + y] = SActive.tetro[x][y];
 			}
-		}
-	}
-
-	// Check playfield for any lines. 
-	void playfield_check()
-	{
-
-		for (int y = 39; y >= 20; y--)
-		{
-
 		}
 	}
 
@@ -366,6 +355,63 @@ public:
 		return true;
 	}
 
+	// based on SActive's last coordinates, return cleared lines.
+	// ARRAY SIZE: 4 bytes
+	uint8_t *get_lines()
+	{
+		uint8_t lines[4] = { 0,0,0,0 };
+
+		// occupy lines[]
+		for (int y = 0; y < 4; y++)
+		{
+			// avoid stack overflow
+			if (SActive.y + y > 39)
+				break;
+
+			uint8_t minos = 0; // the field is 10 accross
+			for (int x = 4; x <= 13; x++)
+			{
+				if (playfield[x][SActive.y + y].Char.AsciiChar != ' ')
+				{
+					++minos;
+				}
+			}
+			if (minos == 10)
+				lines[y] = SActive.y + y;
+		}
+		return lines;
+	}
+
+	// check playfield for lines, update and score as needed
+	void playfield_check()
+	{
+		const uint8_t *lines = get_lines();
+
+		for (int i = 0; i < 4; i++)
+		{
+			if (lines[i] != 0)
+			{
+				for (int x = 4; x <= 13; x++)
+				{
+					playfield[x][lines[i]] = char_info();
+				}
+			}
+		}
+		for (int i = 0; i < 4; i++)
+		{
+			if (lines[i] != 0)
+			{
+				for (int y = lines[i]; y >= 15; y--)
+				{
+					for (int x = 4; x <= 13; x++)
+					{
+						playfield[x][y] = playfield[x][y - 1];
+					}
+				}
+			}
+		}
+	}
+
 	/** GETS */
 	uint64_t get_score() { return score; }
 	float get_interval() { return interval; }
@@ -417,7 +463,7 @@ public:
 
 			if (active)
 			{
-				if (moved) //only runs after player moved
+				if (moved) //only runs after player adjusted
 				{
 					moved = false;
 					if (!can_down())
@@ -428,7 +474,7 @@ public:
 
 				if (duration.count() >= 0) // time to down?
 				{
-					if (can_down())
+					if (can_down()) // we can move down, so move down!
 					{
 						SActive.y++;
 						if (!can_down())
@@ -436,7 +482,7 @@ public:
 						else
 							down_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(interval);
 					}
-					else //cannot move down, LOCK!
+					else // cannot move down, LOCK!
 					{
 						SActive_playfield();
 						playfield_check();
@@ -444,7 +490,7 @@ public:
 						SActive.id = -1;
 						active = false;
 						allow_swap = true;
-						allow_rot = true;
+						allow_rot = false;
 					}
 				}
 				SActive_activefield();
@@ -462,6 +508,8 @@ public:
 				SActive = Tetro::tetro[SActive.id];
 			}
 
+			allow_rot = true;
+
 			down_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(interval);
 			if (!can_down()) // did we lose?
 			{
@@ -475,7 +523,8 @@ public:
 				{
 					SActive.y++;
 				}
-				else { }
+				if (!can_down())
+					down_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(500);
 			}
 
 

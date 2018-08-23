@@ -6,7 +6,7 @@
 #include <iostream>
 #include <chrono>
 #include <thread>
-#include "windows.h"
+#include "Windows.h"
 
 #include "char_info_utils.h"
 #include "Tetro.h"
@@ -116,28 +116,52 @@ void put_hud()
 	}
 
 	// NEXT PIECE
-	put_string(playfield_origin.X + 14, playfield_origin.Y + 1, "\xB0\xB0    \xB0\xB0");
-	put_string(playfield_origin.X + 16, playfield_origin.Y + 1, "NEXT");
-	put_string(playfield_origin.X + 14, playfield_origin.Y + 2, "\xB0      \xB0");
-	put_string(playfield_origin.X + 14, playfield_origin.Y + 3, "\xB0      \xB0");
-	put_string(playfield_origin.X + 14, playfield_origin.Y + 4, "\xB0      \xB0");
-	put_string(playfield_origin.X + 14, playfield_origin.Y + 5, "\xB0      \xB0");
-	put_string(playfield_origin.X + 14, playfield_origin.Y + 6, "\xB0\xB0\xB0\xB0\xB0\xB0\xB0\xB0");
-	put_STetro(playfield_origin.X + 16, playfield_origin.Y + 3, Tetro::tetro[tetris.get_next()]);
+	put_string(playfield_origin.X + 12, playfield_origin.Y, "\xB0\xB0    \xB0\xB0");
+	put_string(playfield_origin.X + 14, playfield_origin.Y, "NEXT");
+	put_string(playfield_origin.X + 12, playfield_origin.Y + 1, "\xB0      \xB0");
+	put_string(playfield_origin.X + 12, playfield_origin.Y + 2, "\xB0      \xB0");
+	put_string(playfield_origin.X + 12, playfield_origin.Y + 3, "\xB0      \xB0");
+	put_string(playfield_origin.X + 12, playfield_origin.Y + 4, "\xB0      \xB0");
+	put_string(playfield_origin.X + 12, playfield_origin.Y + 5, "\xB0\xB0\xB0\xB0\xB0\xB0\xB0\xB0");
+	put_STetro(playfield_origin.X + 14, playfield_origin.Y + 2, Tetro::tetro[tetris.get_next()]);
 
 	// HOLD PIECE
-	put_string(playfield_origin.X - 10, playfield_origin.Y, "\xB0\xB0    \xB0\xB0");
-	put_string(playfield_origin.X - 8, playfield_origin.Y, "HOLD");
-	put_string(playfield_origin.X - 10, playfield_origin.Y+1, "\xB0      \xB0");
-	put_string(playfield_origin.X - 10, playfield_origin.Y+2, "\xB0      \xB0");
-	put_string(playfield_origin.X - 10, playfield_origin.Y+3, "\xB0      \xB0");
-	put_string(playfield_origin.X - 10, playfield_origin.Y+4, "\xB0      \xB0");
-	put_string(playfield_origin.X - 10, playfield_origin.Y+5, "\xB0\xB0\xB0\xB0\xB0\xB0\xB0\xB0");
+	put_string(playfield_origin.X - 11, playfield_origin.Y, "\xB0\xB0    \xB0\xB0");
+	put_string(playfield_origin.X - 9, playfield_origin.Y, "HOLD");
+	put_string(playfield_origin.X - 11, playfield_origin.Y+1, "\xB0      \xB0");
+	put_string(playfield_origin.X - 11, playfield_origin.Y+2, "\xB0      \xB0");
+	put_string(playfield_origin.X - 11, playfield_origin.Y+3, "\xB0      \xB0");
+	put_string(playfield_origin.X - 11, playfield_origin.Y+4, "\xB0      \xB0");
+	put_string(playfield_origin.X - 11, playfield_origin.Y+5, "\xB0\xB0\xB0\xB0\xB0\xB0\xB0\xB0");
 	if (tetris.get_hold() != -1)
 	{
-		put_STetro(playfield_origin.X - 8, playfield_origin.Y + 2, Tetro::tetro[tetris.get_hold()]);
+		put_STetro(playfield_origin.X - 9, playfield_origin.Y + 2, Tetro::tetro[tetris.get_hold()]);
 	}
 
+}
+
+void put_debug()
+{
+	// HUD EXTRAS
+	put_string(playfield_origin.X - 6, playfield_origin.Y + 6, std::to_string(tetris.get_hold()));
+
+	// SIDE INFO
+	put_string(0, 2, "Interval: " + std::to_string(tetris.get_interval()));
+	put_string(0, 3, "can_down: " + std::to_string(tetris.can_down()));
+	put_string(0, 4, "can_left: " + std::to_string(tetris.can_left()));
+	put_string(0, 5, "can_right: " + std::to_string(tetris.can_right()));
+
+	put_string(0, 7, "can_cw: " + std::to_string(tetris.can_cw()));
+	put_string(0, 8, "can_ccw: " + std::to_string(tetris.can_ccw()));
+
+	put_string(0, 10, "SActive.x = " + std::to_string(tetris.SActive.x));
+	put_string(0, 11, "SActive.y = " + std::to_string(tetris.SActive.y));
+
+	put_string(0, 13, "left: " + (std::to_string((GetAsyncKeyState(VK_LEFT) & 32768) >> 15)));
+	put_string(0, 14, "right: " + (std::to_string((GetAsyncKeyState(VK_RIGHT) & 32768) >> 15)));
+	put_string(0, 15, "down: " + (std::to_string((GetAsyncKeyState(VK_DOWN) & 32768) >> 15)));
+
+	put_string(0, 17, "allow_rot: " + (std::to_string(tetris.get_allowrot())));
 }
 
 //////////////////////////////////////////////////////////////////
@@ -152,7 +176,11 @@ HANDLE init_console()
 
 int main()
 {
+	// prepare console
 	HANDLE hConsole = init_console();
+	CONSOLE_FONT_INFOEX cfi;
+	GetCurrentConsoleFontEx(hConsole, false, &cfi);
+
 
 	auto fr_start = std::chrono::high_resolution_clock::now();
 	auto fr_end = std::chrono::high_resolution_clock::now();
@@ -172,26 +200,8 @@ int main()
 		put_hud();
 		put_activefield();
 		put_playfield();
-
+		//put_debug();
 		put_string(0, 0, "FPS: " + std::to_string(1.0f / fr_duration.count()));
-
-		put_string(0, 2, "Interval: " + std::to_string(tetris.get_interval()));
-		put_string(0, 3, "can_down: " + std::to_string(tetris.can_down()));
-		put_string(0, 4, "can_left: " + std::to_string(tetris.can_left()));
-		put_string(0, 5, "can_right: " + std::to_string(tetris.can_right()));
-		put_string(0, 6, "can_cw: " + std::to_string(tetris.can_cw()));
-		put_string(0, 7, "can_ccw: " + std::to_string(tetris.can_ccw()));
-
-		put_string(0, 10, "SActive.x = " + std::to_string(tetris.SActive.x));
-		put_string(0, 11, "SActive.y = " + std::to_string(tetris.SActive.y));
-
-		put_string(0, 13, "left: " + (std::to_string((GetAsyncKeyState(VK_LEFT) & 32768) >> 15)));
-		put_string(0, 14, "right: " + (std::to_string((GetAsyncKeyState(VK_RIGHT) & 32768) >> 15)));
-		put_string(0, 15, "down: " + (std::to_string((GetAsyncKeyState(VK_DOWN) & 32768) >> 15)));
-		
-		put_string(0, 17, "allow_rot: " + (std::to_string(tetris.get_allowrot())));
-
-		put_string(playfield_origin.X - 6, playfield_origin.Y + 6, std::to_string(tetris.get_hold()));
 
 		WriteConsoleOutput(hConsole, *screen, size, coord(0, 0), &srect);
 		fr_end = std::chrono::high_resolution_clock::now();
