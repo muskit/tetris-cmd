@@ -42,11 +42,15 @@ private:
 	bool hldSoft = false;
 	bool hldPause = false;
 
-	// TIMING
+	// TETROMINO TIMING
 	int64_t interval = 1000; // how long it takes (ms) until tetromino must go down, will change with difficulty
 	std::chrono::time_point<std::chrono::steady_clock> down_time;
 	std::chrono::time_point<std::chrono::steady_clock> spawn_time;
 	std::chrono::duration<float, std::milli> duration; // general purpose duration object
+
+	// DAS TIMING
+	std::chrono::time_point<std::chrono::steady_clock> shiftdelay_time;
+	std::chrono::time_point<std::chrono::steady_clock> shift_time;
 	
 	// Put the SActive onto activefield
 	void SActive_activefield()
@@ -94,7 +98,7 @@ private:
 		}
 	}
 
-	// process controls during active mode (move blocks? hold? etc.)
+	// process controls during active mode (move? hold? etc.)
 	void active_controls()
 	{
 		// MOVE //
@@ -239,6 +243,11 @@ private:
 			// TODO: make pause instead of quit
 			lost = true;
 		}
+	}
+
+	void autoshift()
+	{
+
 	}
 
 public:
@@ -461,6 +470,9 @@ public:
 
 			active_controls();
 
+			if(hldL || hldR)
+				autoshift(); // DAS (delayed autoshift)
+
 			if (active)
 			{
 				if (moved) //only runs after player adjusted
@@ -535,6 +547,13 @@ public:
 		
 
 	}
+
+	Tetris(int alevel)
+	{
+		level = alevel;
+	}
+	Tetris() {}
+
 };
 
 #endif // Tetris_h
