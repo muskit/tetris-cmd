@@ -1,5 +1,5 @@
 /**
-  * Main game stuff. Drawing, controls, and more are done here.
+  * Drawing + debug elements.
   */
 
 #include <string>
@@ -23,7 +23,7 @@ SMALL_RECT srect = small_rect(0, 0, CONSOLE_WIDTH - 1, CONSOLE_HEIGHT - 1);
 COORD playfield_origin = coord(35, 3); // top-left coord to start drawing playfield (INSIDE the HUD)
 COORD size = coord(CONSOLE_WIDTH, CONSOLE_HEIGHT);
 
-Tetris tetris;
+Tetris tetris(1);
 
 /** RENDER FUNCTIONS (screen[y][x]) */
 
@@ -49,6 +49,20 @@ void put_STetro(int sx, int sy, STetro st)
 		{
 			if (st.tetro[x][y].Char.AsciiChar != ' ')
 				screen[y + sy][x + sx] = st.tetro[x][y];
+		}
+	}
+}
+
+void put_field(CHAR_INFO a[14][40])
+{
+	for (int y = 0; y <= 19; y++)
+	{
+		for (int x = 0; x <= 9; x++)
+		{
+			if (a[x + 4][y + 20].Char.AsciiChar != ' ' && a[x + 4][y + 20].Char.AsciiChar != 0)
+			{
+				screen[playfield_origin.Y + y][playfield_origin.X + x] = a[x + 4][y + 20];
+			}
 		}
 	}
 }
@@ -138,6 +152,14 @@ void put_hud()
 		put_STetro(playfield_origin.X - 9, playfield_origin.Y + 2, Tetro::tetro[tetris.get_hold()]);
 	}
 
+	put_string(playfield_origin.X + 12, playfield_origin.Y + 7, "\xB0\xB1\xB2\xDB     \xDB\xB2\xB1\xB0");
+	put_string(playfield_origin.X + 16, playfield_origin.Y + 7, "LINES");
+	put_string(playfield_origin.X + 15, playfield_origin.Y + 9, std::to_string(tetris.lines_achieved()) + " / " + std::to_string(tetris.get_line_nextlvl()) );
+
+	put_string(playfield_origin.X + 12, playfield_origin.Y + 13, "\xB0\xB1\xB2\xDB     \xDB\xB2\xB1\xB0");
+	put_string(playfield_origin.X + 16, playfield_origin.Y + 13, "LEVEL");
+	put_string(playfield_origin.X + 18, playfield_origin.Y + 15, std::to_string(tetris.get_level()));
+
 }
 
 void put_debug()
@@ -156,6 +178,7 @@ void put_debug()
 
 	put_string(0, 10, "SActive.x = " + std::to_string(tetris.SActive.x));
 	put_string(0, 11, "SActive.y = " + std::to_string(tetris.SActive.y));
+	put_string(0, 12, "rot: " + (std::to_string(tetris.SActive.rot)));
 
 	put_string(0, 13, "left: " + (std::to_string((GetAsyncKeyState(VK_LEFT) & 32768) >> 15)));
 	put_string(0, 14, "right: " + (std::to_string((GetAsyncKeyState(VK_RIGHT) & 32768) >> 15)));
@@ -198,16 +221,18 @@ int main()
 
 		// RENDER //
 		put_hud();
-		put_activefield();
-		put_playfield();
-		//put_debug();
+		/*put_activefield();
+		put_playfield();*/
+		put_field(tetris.activefield);
+		put_field(tetris.playfield);
+		put_field(tetris.ghostfield);
+		put_debug();
 		put_string(0, 0, "FPS: " + std::to_string(1.0f / fr_duration.count()));
 
 		WriteConsoleOutput(hConsole, *screen, size, coord(0, 0), &srect);
 		fr_end = std::chrono::high_resolution_clock::now();
 		fr_duration = fr_end - fr_start;
 	}
-	CloseHandle(hConsole);
 
 	std::cout << std::string(8, '\n');
 	std::cout << "Your score was " << tetris.get_score() << '\n';

@@ -51,10 +51,66 @@ public:
 
 	uint8_t x = 7;
 	uint8_t y = 18;
+	short id = -1;
 
 	uint8_t dim = 4;
+	uint8_t rot = 0; // 0 - north
+	                 // 1 - east
+	                 // 2 - south
+	                 // 3 - west
 
-	short id = -1;
+	// rotate itself, counter-clockwise.
+	void ccw()
+	{
+		if (id == 6)
+			return;
+
+		CHAR_INFO rot[4][4];
+		charinfo_clear(*rot, 4 * 4);
+
+		uint8_t rx = dim - 1;
+		for (int y = 0; y < dim; y++)
+		{
+			for (int x = 0; x < dim; x++)
+			{
+				rot[x][y] = tetro[rx][x];
+			}
+			rx--;
+		}
+
+		memcpy(&tetro, rot, sizeof(rot));
+
+		if (this->rot > 0)
+			this->rot--;
+		else
+			this->rot = 3;
+	}
+	// rotate itself, clockwise.
+	void cw()
+	{
+		if (id == 6)
+			return;
+
+		CHAR_INFO rot[4][4];
+		charinfo_clear(*rot, 4 * 4);
+
+		uint8_t ry = dim - 1;
+
+		for (int y = 0; y < dim; y++)
+		{
+			for (int x = 0; x < dim; x++)
+			{
+				rot[x][y] = tetro[y][ry--];
+			}
+			ry = dim - 1;
+		}
+		memcpy(&tetro, rot, sizeof(rot));
+
+		if (this->rot < 3)
+			this->rot++;
+		else
+			this->rot = 0;
+	}
 
 	STetro(const CHAR_INFO charinfo[4][4], uint8_t num, bool isthree = false)
 	{
@@ -98,6 +154,11 @@ namespace Tetro
 	const STetro tetro[7] = { I, L, J, T, S, Z, O };
 }
 
+
+
+
+/** STETRO UTILITY FUNCTIONS */
+
 // Given a tetromino in 4x4 array and orientation value, return an STetro with
 // appropriate tetromino and orientation.
 STetro get_STetro(const CHAR_INFO tet[4][4])
@@ -136,6 +197,11 @@ STetro cw(STetro a)
 		}
 		ry = result.dim - 1;
 	}
+	if (a.rot < 3)
+		result.rot++;
+	else
+		result.rot = 0;
+
 	return result;
 }
 // Return given STetro, counter-clockwise.
@@ -160,6 +226,11 @@ STetro ccw(STetro a)
 		}
 		rx--;
 	}
+	if (a.rot > 0)
+		result.rot--;
+	else
+		result.rot = 3;
+
 	return result;
 }
 
