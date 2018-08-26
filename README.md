@@ -2,6 +2,8 @@
 Tetris for the Windows Command Prompt.
 
 ## TODO
-  * super rotation
+  * super rotation (WIP)
   * ARE
   * scoring system
+  * pausing
+  * menus
