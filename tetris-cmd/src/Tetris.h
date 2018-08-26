@@ -183,8 +183,7 @@ private:
 			{
 				if (allow_rot)
 				{
-					cw_super();
-					moved = true;
+					moved = cw_super();
 				}
 				hldCW = true;
 
@@ -196,17 +195,13 @@ private:
 		}
 		if ((GetAsyncKeyState(0x5A) & 32768) >> 15 && active) // CCW, [Z]
 		{
-			if (can_ccw())
+			if (!hldCCW)
 			{
-				if (!hldCCW)
+				if (allow_rot)
 				{
-					if (allow_rot)
-					{
-						SActive.ccw();
-						moved = true;
-					}
-					hldCCW = true;
+					moved = ccw_super();
 				}
+				hldCCW = true;
 			}
 		}
 		else
@@ -316,7 +311,9 @@ private:
 		}
 	}
 	
-	// check against the playfield if given STetro is in a free spot
+	// check against the playfield if given STetro is in a good spot, in that
+	//    1. is not in an occupying spot
+	//    2. is not out of bounds
 	bool is_valid(STetro &test)
 	{
 		for (int y = 0; y < 4; y++)
@@ -335,10 +332,11 @@ private:
 		return true;
 	}
 
-	void cw_super()
+	// clock-wise SRS
+	bool cw_super()
 	{
 		if (SActive.id == 6)
-			return;
+			return true;
 
 		STetro test;
 		memcpy(&test, &SActive, sizeof(STetro));
@@ -349,7 +347,7 @@ private:
 		{
 			memcpy(&SActive, &test, sizeof(STetro));
 			test_progress = 1;
-			return;
+			return true;
 		}
 
 		// I test
@@ -364,7 +362,7 @@ private:
 				{
 					memcpy(&SActive, &test, sizeof(STetro));
 					test_progress = 2;
-					return;
+					return true;
 				}
 				// TEST 3
 				test.x = SActive.x + 1;
@@ -372,7 +370,7 @@ private:
 				{
 					memcpy(&SActive, &test, sizeof(STetro));
 					test_progress = 3;
-					return;
+					return true;
 				}
 				// TEST 4
 				test.x = SActive.x - 2;
@@ -381,7 +379,7 @@ private:
 				{
 					memcpy(&SActive, &test, sizeof(STetro));
 					test_progress = 4;
-					return;
+					return true;
 				}
 				// TEST 5
 				test.x = SActive.x + 1;
@@ -390,7 +388,7 @@ private:
 				{
 					memcpy(&SActive, &test, sizeof(STetro));
 					test_progress = 5;
-					return;
+					return true;
 				}
 			}
 			/** Start: 1 */
@@ -401,14 +399,14 @@ private:
 				if (is_valid(test))
 				{
 					memcpy(&SActive, &test, sizeof(STetro));
-					return;
+					return true;
 				}
 				// TEST 3
 				test.x = SActive.x + 2;
 				if (is_valid(test))
 				{
 					memcpy(&SActive, &test, sizeof(STetro));
-					return;
+					return true;
 				}
 				// TEST 4
 				test.x = SActive.x - 1;
@@ -416,7 +414,7 @@ private:
 				if (is_valid(test))
 				{
 					memcpy(&SActive, &test, sizeof(STetro));
-					return;
+					return true;
 				}
 				// TEST 5
 				test.x = SActive.x + 2;
@@ -424,7 +422,7 @@ private:
 				if (is_valid(test))
 				{
 					memcpy(&SActive, &test, sizeof(STetro));
-					return;
+					return true;
 				}
 			}
 			/** Start: 2 */
@@ -435,14 +433,14 @@ private:
 				if (is_valid(test))
 				{
 					memcpy(&SActive, &test, sizeof(STetro));
-					return;
+					return true;
 				}
 				// TEST 3
 				test.x = SActive.x - 1;
 				if (is_valid(test))
 				{
 					memcpy(&SActive, &test, sizeof(STetro));
-					return;
+					return true;
 				}
 				// TEST 4
 				test.x = SActive.x + 2;
@@ -450,7 +448,7 @@ private:
 				if (is_valid(test))
 				{
 					memcpy(&SActive, &test, sizeof(STetro));
-					return;
+					return true;
 				}
 				// TEST 5
 				test.x = SActive.x - 1;
@@ -458,7 +456,7 @@ private:
 				if (is_valid(test))
 				{
 					memcpy(&SActive, &test, sizeof(STetro));
-					return;
+					return true;
 				}
 			}
 			/** Start: 3 */
@@ -469,14 +467,14 @@ private:
 				if (is_valid(test))
 				{
 					memcpy(&SActive, &test, sizeof(STetro));
-					return;
+					return true;
 				}
 				// TEST 3
 				test.x = SActive.x - 2;
 				if (is_valid(test))
 				{
 					memcpy(&SActive, &test, sizeof(STetro));
-					return;
+					return true;
 				}
 				// TEST 4
 				test.x = SActive.x + 1;
@@ -484,7 +482,7 @@ private:
 				if (is_valid(test))
 				{
 					memcpy(&SActive, &test, sizeof(STetro));
-					return;
+					return true;
 				}
 				// TEST 5
 				test.x = SActive.x - 2;
@@ -492,7 +490,7 @@ private:
 				if (is_valid(test))
 				{
 					memcpy(&SActive, &test, sizeof(STetro));
-					return;
+					return true;
 				}
 			}
 		}
@@ -508,7 +506,7 @@ private:
 				{
 					memcpy(&SActive, &test, sizeof(STetro));
 					test_progress = 2;
-					return;
+					return true;
 				}
 				// TEST 3
 				test.x = SActive.x - 1;
@@ -517,7 +515,7 @@ private:
 				{
 					memcpy(&SActive, &test, sizeof(STetro));
 					test_progress = 3;
-					return;
+					return true;
 				}
 				// TEST 4
 				test.x = SActive.x;
@@ -526,7 +524,7 @@ private:
 				{
 					memcpy(&SActive, &test, sizeof(STetro));
 					test_progress = 4;
-					return;
+					return true;
 				}
 				// TEST 5
 				test.x = SActive.x - 1;
@@ -535,7 +533,7 @@ private:
 				{
 					memcpy(&SActive, &test, sizeof(STetro));
 					test_progress = 5;
-					return;
+					return true;
 				}
 			}
 			/** Start: 1 */
@@ -547,7 +545,7 @@ private:
 				if (is_valid(test))
 				{
 					memcpy(&SActive, &test, sizeof(STetro));
-					return;
+					return true;
 				}
 				// TEST 3
 				test.x = SActive.x + 1;
@@ -555,7 +553,7 @@ private:
 				if (is_valid(test))
 				{
 					memcpy(&SActive, &test, sizeof(STetro));
-					return;
+					return true;
 				}
 				// TEST 4
 				test.x = SActive.x;
@@ -563,7 +561,7 @@ private:
 				if (is_valid(test))
 				{
 					memcpy(&SActive, &test, sizeof(STetro));
-					return;
+					return true;
 				}
 				// TEST 5
 				test.x = SActive.x + 1;
@@ -571,7 +569,7 @@ private:
 				if (is_valid(test))
 				{
 					memcpy(&SActive, &test, sizeof(STetro));
-					return;
+					return true;
 				}
 			}
 			/** Start: 2 */
@@ -583,7 +581,7 @@ private:
 				if (is_valid(test))
 				{
 					memcpy(&SActive, &test, sizeof(STetro));
-					return;
+					return true;
 				}
 				// TEST 3
 				test.x = SActive.x + 1;
@@ -591,7 +589,7 @@ private:
 				if (is_valid(test))
 				{
 					memcpy(&SActive, &test, sizeof(STetro));
-					return;
+					return true;
 				}
 				// TEST 4
 				test.x = SActive.x;
@@ -599,7 +597,7 @@ private:
 				if (is_valid(test))
 				{
 					memcpy(&SActive, &test, sizeof(STetro));
-					return;
+					return true;
 				}
 				// TEST 5
 				test.x = SActive.x + 1;
@@ -607,7 +605,7 @@ private:
 				if (is_valid(test))
 				{
 					memcpy(&SActive, &test, sizeof(STetro));
-					return;
+					return true;
 				}
 			}
 			/** Start: 3 */
@@ -618,7 +616,7 @@ private:
 				if (is_valid(test))
 				{
 					memcpy(&SActive, &test, sizeof(STetro));
-					return;
+					return true;
 				}
 				// TEST 3
 				test.x = SActive.x - 1;
@@ -626,7 +624,7 @@ private:
 				if (is_valid(test))
 				{
 					memcpy(&SActive, &test, sizeof(STetro));
-					return;
+					return true;
 				}
 				// TEST 4
 				test.x = SActive.x;
@@ -634,7 +632,7 @@ private:
 				if (is_valid(test))
 				{
 					memcpy(&SActive, &test, sizeof(STetro));
-					return;
+					return true;
 				}
 				// TEST 5
 				test.x = SActive.x - 1;
@@ -642,36 +640,326 @@ private:
 				if (is_valid(test))
 				{
 					memcpy(&SActive, &test, sizeof(STetro));
-					return;
+					return true;
 				}
 			}
 		}
+		return false;
 	}
 
-	void ccw_super()
+	// counter-clockwise SRS
+	bool ccw_super()
 	{
 		STetro test;
 		memcpy(&test, &SActive, sizeof(STetro));
 		test.ccw();
 
+		if (SActive.id == 6)
+			return true;
+
+		// (0,0; test 1)
+		if (is_valid(test))
+		{
+			memcpy(&SActive, &test, sizeof(STetro));
+			test_progress = 1;
+			return true;
+		}
+
 		// I test
 		if (test.id == 0)
 		{
-			// 0 -> ...
-			if (test.rot == 0)
+			/** Start: 0 */
+			if (SActive.rot == 1)
 			{
-				// ...3
-				if (test.rot == 3)
+				// TEST 2
+				test.x = SActive.x + 2;
+				if (is_valid(test))
 				{
-					test.x -= 1;
-					if (is_valid(test))
-					{
-						memcpy(&SActive, &test, sizeof(STetro));
-						return;
-					}
+					memcpy(&SActive, &test, sizeof(STetro));
+					test_progress = 2;
+					return true;
+				}
+				// TEST 3
+				test.x = SActive.x - 1;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					test_progress = 3;
+					return true;
+				}
+				// TEST 4
+				test.x = SActive.x + 2;
+				test.y = SActive.y - 1;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					test_progress = 4;
+					return true;
+				}
+				// TEST 5
+				test.x = SActive.x - 1;
+				test.y = SActive.y + 2;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					test_progress = 5;
+					return true;
+				}
+			}
+			/** Start: 2 */
+			if (SActive.rot == 2)
+			{
+				// TEST 2
+				test.x = SActive.x + 1;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return true;
+				}
+				// TEST 3
+				test.x = SActive.x - 2;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return true;
+				}
+				// TEST 4
+				test.x = SActive.x + 1;
+				test.y = SActive.y + 2;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return true;
+				}
+				// TEST 5
+				test.x = SActive.x - 2;
+				test.y = SActive.y - 1;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return true;
+				}
+			}
+			/** Start: 3 */
+			if (SActive.rot == 3)
+			{
+				// TEST 2
+				test.x = SActive.x - 2;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return true;
+				}
+				// TEST 3
+				test.x = SActive.x + 1;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return true;
+				}
+				// TEST 4
+				test.x = SActive.x - 2;
+				test.y = SActive.y + 1;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return true;
+				}
+				// TEST 5
+				test.x = SActive.x + 1;
+				test.y = SActive.y - 2;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return true;
+				}
+			}
+			/** Start: 0 */
+			if (SActive.rot == 0)
+			{
+				// TEST 2
+				test.x = SActive.x - 1;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return true;
+				}
+				// TEST 3
+				test.x = SActive.x + 2;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return true;
+				}
+				// TEST 4
+				test.x = SActive.x - 1;
+				test.y = SActive.y - 2;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return true;
+				}
+				// TEST 5
+				test.x = SActive.x + 2;
+				test.y = SActive.y + 1;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return true;
 				}
 			}
 		}
+		// Everything else (excluding 'O')
+		else
+		{
+			/** Start: 1 */
+			if (SActive.rot == 1)
+			{
+				// TEST 2
+				test.x = SActive.x + 1;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					test_progress = 2;
+					return true;
+				}
+				// TEST 3
+				test.x = SActive.x + 1;
+				test.y = SActive.y + 1;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					test_progress = 3;
+					return true;
+				}
+				// TEST 4
+				test.x = SActive.x;
+				test.y = SActive.y - 2;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					test_progress = 4;
+					return true;
+				}
+				// TEST 5
+				test.x = SActive.x + 1;
+				test.y = SActive.y - 2;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					test_progress = 5;
+					return true;
+				}
+			}
+			/** Start: 2 */
+			if (SActive.rot == 2)
+			{
+				// TEST 2
+				test.x = SActive.x - 1;
+				test.y = SActive.y;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return true;
+				}
+				// TEST 3
+				test.x = SActive.x - 1;
+				test.y = SActive.y - 1;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return true;
+				}
+				// TEST 4
+				test.x = SActive.x;
+				test.y = SActive.y + 2;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return true;
+				}
+				// TEST 5
+				test.x = SActive.x - 1;
+				test.y = SActive.y + 2;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return true;
+				}
+			}
+			/** Start: 3 */
+			if (SActive.rot == 3)
+			{
+				// TEST 2
+				test.x = SActive.x - 1;
+				test.y = SActive.y;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return true;
+				}
+				// TEST 3
+				test.x = SActive.x - 1;
+				test.y = SActive.y + 1;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return true;
+				}
+				// TEST 4
+				test.x = SActive.x;
+				test.y = SActive.y - 2;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return true;
+				}
+				// TEST 5
+				test.x = SActive.x - 1;
+				test.y = SActive.y - 2;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return true;
+				}
+			}
+			/** Start: 0 */
+			if (SActive.rot == 0)
+			{
+				// TEST 2
+				test.x = SActive.x + 1;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return true;
+				}
+				// TEST 3
+				test.x = SActive.x + 1;
+				test.y = SActive.y - 1;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return true;
+				}
+				// TEST 4
+				test.x = SActive.x;
+				test.y = SActive.y + 2;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return true;
+				}
+				// TEST 5
+				test.x = SActive.x + 1;
+				test.y = SActive.y + 2;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 public:
