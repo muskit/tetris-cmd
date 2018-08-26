@@ -117,6 +117,7 @@ private:
 				if (ghost.tetro[x][y].Char.AsciiChar != 0 && ghost.tetro[x][y].Char.AsciiChar != ' ')
 				{
 					ghost.tetro[x][y].Attributes = 0b111;
+					ghost.tetro[x][y].Char.AsciiChar = 176;
 					ghostfield[ghost.x + x][ghost.y + y] = ghost.tetro[x][y];
 				}
 			}
@@ -178,18 +179,15 @@ private:
 		// ROTATION //
 		if ((GetAsyncKeyState(0x58) & 32768) >> 15 && active) // CW, [X]
 		{
-			if (can_cw())
+			if (!hldCW)
 			{
-				if (!hldCW)
+				if (allow_rot)
 				{
-					if (allow_rot)
-					{
-						SActive.cw();
-						moved = true;
-					}
-					hldCW = true;
-
+					cw_super();
+					moved = true;
 				}
+				hldCW = true;
+
 			}
 		}
 		else
@@ -317,6 +315,364 @@ private:
 
 		}
 	}
+	
+	// check against the playfield if given STetro is in a free spot
+	bool is_valid(STetro &test)
+	{
+		for (int y = 0; y < 4; y++)
+		{
+			for (int x = 0; x < 4; x++)
+			{
+				// don't check blank spots
+				if (test.tetro[x][y].Char.AsciiChar != ' ')
+				{
+					// check against the playfield
+					if ((playfield[test.x + x][test.y + y].Char.AsciiChar != ' ') || ((test.x + x > 13 || test.x + x < 4) || (test.y + y > 39 || test.y + y < 20) ))
+						return false;
+				}
+			}
+		}
+		return true;
+	}
+
+	void cw_super()
+	{
+		if (SActive.id == 6)
+			return;
+
+		STetro test;
+		memcpy(&test, &SActive, sizeof(STetro));
+		test.cw();
+
+		// (0,0; test 1)
+		if (is_valid(test))
+		{
+			memcpy(&SActive, &test, sizeof(STetro));
+			test_progress = 1;
+			return;
+		}
+
+		// I test
+		if (test.id == 0)
+		{
+			/** Start: 0 */
+			if (SActive.rot == 0)
+			{
+				// TEST 2
+				test.x = SActive.x - 2;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					test_progress = 2;
+					return;
+				}
+				// TEST 3
+				test.x = SActive.x + 1;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					test_progress = 3;
+					return;
+				}
+				// TEST 4
+				test.x = SActive.x - 2;
+				test.y = SActive.y + 1;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					test_progress = 4;
+					return;
+				}
+				// TEST 5
+				test.x = SActive.x + 1;
+				test.y = SActive.y - 2;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					test_progress = 5;
+					return;
+				}
+			}
+			/** Start: 1 */
+			if (SActive.rot == 1)
+			{
+				// TEST 2
+				test.x = SActive.x - 1;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return;
+				}
+				// TEST 3
+				test.x = SActive.x + 2;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return;
+				}
+				// TEST 4
+				test.x = SActive.x - 1;
+				test.y = SActive.y - 2;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return;
+				}
+				// TEST 5
+				test.x = SActive.x + 2;
+				test.y = SActive.y + 1;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return;
+				}
+			}
+			/** Start: 2 */
+			if (SActive.rot == 2)
+			{
+				// TEST 2
+				test.x = SActive.x + 2;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return;
+				}
+				// TEST 3
+				test.x = SActive.x - 1;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return;
+				}
+				// TEST 4
+				test.x = SActive.x + 2;
+				test.y = SActive.y - 1;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return;
+				}
+				// TEST 5
+				test.x = SActive.x - 1;
+				test.y = SActive.y + 2;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return;
+				}
+			}
+			/** Start: 3 */
+			if (SActive.rot == 3)
+			{
+				// TEST 2
+				test.x = SActive.x + 1;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return;
+				}
+				// TEST 3
+				test.x = SActive.x - 2;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return;
+				}
+				// TEST 4
+				test.x = SActive.x + 1;
+				test.y = SActive.y + 2;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return;
+				}
+				// TEST 5
+				test.x = SActive.x - 2;
+				test.y = SActive.y - 1;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return;
+				}
+			}
+		}
+		// Everything else (excluding 'O')
+		else
+		{
+			/** Start: 0 */
+			if (SActive.rot == 0)
+			{
+				// TEST 2
+				test.x = SActive.x - 1;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					test_progress = 2;
+					return;
+				}
+				// TEST 3
+				test.x = SActive.x - 1;
+				test.y = SActive.y - 1;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					test_progress = 3;
+					return;
+				}
+				// TEST 4
+				test.x = SActive.x;
+				test.y = SActive.y + 2;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					test_progress = 4;
+					return;
+				}
+				// TEST 5
+				test.x = SActive.x - 1;
+				test.y = SActive.y + 2;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					test_progress = 5;
+					return;
+				}
+			}
+			/** Start: 1 */
+			if (SActive.rot == 1)
+			{
+				// TEST 2
+				test.x = SActive.x + 1;
+				test.y = SActive.y;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return;
+				}
+				// TEST 3
+				test.x = SActive.x + 1;
+				test.y = SActive.y + 1;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return;
+				}
+				// TEST 4
+				test.x = SActive.x;
+				test.y = SActive.y - 2;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return;
+				}
+				// TEST 5
+				test.x = SActive.x + 1;
+				test.y = SActive.y - 2;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return;
+				}
+			}
+			/** Start: 2 */
+			if (SActive.rot == 2)
+			{
+				// TEST 2
+				test.x = SActive.x + 1;
+				test.y = SActive.y;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return;
+				}
+				// TEST 3
+				test.x = SActive.x + 1;
+				test.y = SActive.y - 1;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return;
+				}
+				// TEST 4
+				test.x = SActive.x;
+				test.y = SActive.y + 2;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return;
+				}
+				// TEST 5
+				test.x = SActive.x + 1;
+				test.y = SActive.y + 2;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return;
+				}
+			}
+			/** Start: 3 */
+			if (SActive.rot == 3)
+			{
+				// TEST 2
+				test.x = SActive.x - 1;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return;
+				}
+				// TEST 3
+				test.x = SActive.x - 1;
+				test.y = SActive.y + 1;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return;
+				}
+				// TEST 4
+				test.x = SActive.x;
+				test.y = SActive.y - 2;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return;
+				}
+				// TEST 5
+				test.x = SActive.x - 1;
+				test.y = SActive.y - 2;
+				if (is_valid(test))
+				{
+					memcpy(&SActive, &test, sizeof(STetro));
+					return;
+				}
+			}
+		}
+	}
+
+	void ccw_super()
+	{
+		STetro test;
+		memcpy(&test, &SActive, sizeof(STetro));
+		test.ccw();
+
+		// I test
+		if (test.id == 0)
+		{
+			// 0 -> ...
+			if (test.rot == 0)
+			{
+				// ...3
+				if (test.rot == 3)
+				{
+					test.x -= 1;
+					if (is_valid(test))
+					{
+						memcpy(&SActive, &test, sizeof(STetro));
+						return;
+					}
+				}
+			}
+		}
+	}
 
 public:
 	// 14x40 playfield; player only sees 10x20
@@ -337,6 +693,8 @@ public:
 
 	// ghost piece
 	STetro ghost;
+
+	char test_progress = -1;
 
 	// return a drop interval in milliseconds, given level
 	double get_interval (uint16_t a)
@@ -414,43 +772,18 @@ public:
 		}
 		return true;
 	}
+
 	bool can_cw()
 	{
-		STetro test = cw(SActive);
+		STetro test = Tetro::cw(SActive);
 		
-		for (int y = 0; y < 4; y++)
-		{
-			for (int x = 0; x < 4; x++)
-			{
-				// don't check blank spots
-				if (test.tetro[x][y].Char.AsciiChar != ' ')
-				{
-					// check against the playfield
-					if ((playfield[test.x + x][test.y + y].Char.AsciiChar != ' ') || ( (test.x+x > 13 || test.x+x < 4) || ( test.y+y > 39 || test.y+y < 20 ) ))
-						return false;
-				}
-			}
-		}
-		return true;
+		return is_valid(test);
 	}
 	bool can_ccw()
 	{
-		STetro test = ccw(SActive);
+		STetro test = Tetro::ccw(SActive);
 
-		for (int y = 0; y < 4; y++)
-		{
-			for (int x = 0; x < 4; x++)
-			{
-				// don't check blank spots
-				if (test.tetro[x][y].Char.AsciiChar != ' ')
-				{
-					// check against the playfield
-					if ((playfield[test.x + x][test.y + y].Char.AsciiChar != ' ') || ((test.x + x > 13 || test.x + x < 4) || (test.y + y > 39 || test.y + y < 20)))
-						return false;
-				}
-			}
-		}
-		return true;
+		return is_valid(test);
 	}
 
 	// based on SActive's last coordinates, return cleared lines.

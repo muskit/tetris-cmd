@@ -20,7 +20,7 @@ CHAR_INFO screen[CONSOLE_HEIGHT][CONSOLE_WIDTH]; // buffer to draw
 
 SMALL_RECT srect = small_rect(0, 0, CONSOLE_WIDTH - 1, CONSOLE_HEIGHT - 1);
 
-COORD playfield_origin = coord(35, 3); // top-left coord to start drawing playfield (INSIDE the HUD)
+COORD playfield_origin = coord(32, 5); // top-left coord to start drawing playfield (INSIDE the HUD)
 COORD size = coord(CONSOLE_WIDTH, CONSOLE_HEIGHT);
 
 Tetris tetris(1);
@@ -81,25 +81,17 @@ void put_hud()
 {
 	for (int y = -1; y < 21; y++)
 	{
-		if (y == -1)
+		if (y == -1) // START
 		{
-			for (int x = -1; x < 11; x++)
-			{
-				if (x <= 1 || x >= 8)
-					screen[playfield_origin.Y + y][playfield_origin.X + x] = char_info(177, 0b111);
-			}
+			put_string(playfield_origin.X - 1, playfield_origin.Y + y, "\xC9\xCD\xCD\xBC    \xC8\xCD\xCD\xBB");
 		}
-		else if (y == 20)
+		else if (y == 20) // END
 		{
-			for (int x = -1; x < 11; x++)
-			{
-				screen[playfield_origin.Y + y][playfield_origin.X + x] = char_info(177, 0b111);
-			}
+			put_string(playfield_origin.X - 1, playfield_origin.Y + y, "\xC8\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBC");
 		}
 		else
 		{
-			screen[playfield_origin.Y + y][playfield_origin.X - 1] = char_info(177, 0b111);
-			screen[playfield_origin.Y + y][playfield_origin.X + 10] = char_info(177, 0b111);
+			put_string(playfield_origin.X - 1, playfield_origin.Y + y, "\xBA          \xBA");
 		}
 	}
 
@@ -162,6 +154,8 @@ void put_debug()
 
 	put_string(0, 21, "ghost.x: " + std::to_string(tetris.ghost.x));
 	put_string(0, 22, "ghost.y: " + std::to_string(tetris.ghost.y));
+
+	put_string(0, 24, "test_progress: " + std::to_string(tetris.test_progress));
 }
 
 //////////////////////////////////////////////////////////////////
@@ -178,9 +172,6 @@ int main()
 {
 	// prepare console
 	HANDLE hConsole = init_console();
-	CONSOLE_FONT_INFOEX cfi;
-	GetCurrentConsoleFontEx(hConsole, false, &cfi);
-
 
 	auto fr_start = std::chrono::high_resolution_clock::now();
 	auto fr_end = std::chrono::high_resolution_clock::now();

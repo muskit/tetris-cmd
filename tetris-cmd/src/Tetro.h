@@ -5,41 +5,43 @@
 #include "Windows.h"
 #include "char_info_utils.h"
 
+const char MINO = 219;
+
 // TODO: make each array an STetro
 namespace Tetro
 {
 	const CHAR_INFO _I[4][4] = { { char_info(' '), char_info(' '), char_info(' '), char_info(' ') },
-	                            { char_info(178, 0b11), char_info(178, 0b11), char_info(178, 0b11), char_info(178, 0b11) },
+	                            { char_info(MINO, 0b11), char_info(MINO, 0b11), char_info(MINO, 0b11), char_info(MINO, 0b11) },
 	                            { char_info(' '), char_info(' '), char_info(' '), char_info(' ') },
 						        { char_info(' '), char_info(' '), char_info(' '), char_info(' ') } };
 
-	const CHAR_INFO _L[4][4] = { { char_info(' '), char_info(' '), char_info(178, 0b110), char_info(' ') },
-	                            { char_info(178, 0b110), char_info(178, 0b110), char_info(178, 0b110), char_info(' ') },
+	const CHAR_INFO _L[4][4] = { { char_info(' '), char_info(' '), char_info(MINO, 0b110), char_info(' ') },
+	                            { char_info(MINO, 0b110), char_info(MINO, 0b110), char_info(MINO, 0b110), char_info(' ') },
 	                            { char_info(' '), char_info(' '), char_info(' '), char_info(' ') },
 	                            { char_info(' '), char_info(' '), char_info(' '), char_info(' ') } };
 
-	const CHAR_INFO _J[4][4] = { { char_info(178,1), char_info(' '), char_info(' '), char_info(' ') },
-	                            { char_info(178,1), char_info(178,1), char_info(178,1), char_info(' ') },
+	const CHAR_INFO _J[4][4] = { { char_info(MINO,1), char_info(' '), char_info(' '), char_info(' ') },
+	                            { char_info(MINO,1), char_info(MINO,1), char_info(MINO,1), char_info(' ') },
 	                            { char_info(' '), char_info(' '), char_info(' '), char_info(' ') },
 	                            { char_info(' '), char_info(' '), char_info(' '), char_info(' ') } };
 
-	const CHAR_INFO _T[4][4] = { { char_info(' '), char_info(178, 0b101), char_info(' '), char_info(' ') },
-	                            { char_info(178, 0b101), char_info(178, 0b101), char_info(178, 0b101), char_info(' ') },
+	const CHAR_INFO _T[4][4] = { { char_info(' '), char_info(MINO, 0b101), char_info(' '), char_info(' ') },
+	                            { char_info(MINO, 0b101), char_info(MINO, 0b101), char_info(MINO, 0b101), char_info(' ') },
 	                            { char_info(' '), char_info(' '), char_info(' '), char_info(' ') },
 	                            { char_info(' '), char_info(' '), char_info(' '), char_info(' ') } };
 
-	const CHAR_INFO _S[4][4] = { { char_info(' '), char_info(178, 0b10), char_info(178, 0b10), char_info(' ') },
-	                            { char_info(178, 0b10), char_info(178, 0b10), char_info(' '), char_info(' ') },
+	const CHAR_INFO _S[4][4] = { { char_info(' '), char_info(MINO, 0b10), char_info(MINO, 0b10), char_info(' ') },
+	                            { char_info(MINO, 0b10), char_info(MINO, 0b10), char_info(' '), char_info(' ') },
 	                            { char_info(' '), char_info(' '), char_info(' '), char_info(' ') },
 	                            { char_info(' '), char_info(' '), char_info(' '), char_info(' ') } };
 
-	const CHAR_INFO _Z[4][4] = { { char_info(178, 0b100), char_info(178, 0b100), char_info(' '), char_info(' ') },
-	                            { char_info(' '), char_info(178, 0b100), char_info(178, 0b100), char_info(' ') },
+	const CHAR_INFO _Z[4][4] = { { char_info(MINO, 0b100), char_info(MINO, 0b100), char_info(' '), char_info(' ') },
+	                            { char_info(' '), char_info(MINO, 0b100), char_info(MINO, 0b100), char_info(' ') },
 	                            { char_info(' '), char_info(' '), char_info(' '), char_info(' ') },
 	                            { char_info(' '), char_info(' '), char_info(' '), char_info(' ') } };
 
-	const CHAR_INFO _O[4][4] = { { char_info(' '), char_info(178, 0b1110), char_info(178, 0b1110), char_info(' ') },
-	                            { char_info(' '), char_info(178, 0b1110), char_info(178, 0b1110), char_info(' ') },
+	const CHAR_INFO _O[4][4] = { { char_info(' '), char_info(MINO, 0b1110), char_info(MINO, 0b1110), char_info(' ') },
+	                            { char_info(' '), char_info(MINO, 0b1110), char_info(MINO, 0b1110), char_info(' ') },
 	                            { char_info(' '), char_info(' '), char_info(' '), char_info(' ') },
 	                            { char_info(' '), char_info(' '), char_info(' '), char_info(' ') } };
 }
@@ -152,6 +154,67 @@ namespace Tetro
 	const STetro O(_O, 6, true);
 
 	const STetro tetro[7] = { I, L, J, T, S, Z, O };
+
+
+	// Return STetro given, clockwise.
+	STetro cw(STetro a)
+	{
+		if (a.id == 6)
+			return a;
+
+		STetro result;
+		charinfo_clear(*result.tetro, 4 * 4);
+		result.x = a.x;
+		result.y = a.y;
+		result.dim = a.dim;
+		result.id = a.id;
+
+		uint8_t ry = result.dim - 1;
+
+		for (int y = 0; y < result.dim; y++)
+		{
+			for (int x = 0; x < result.dim; x++)
+			{
+				result.tetro[x][y] = a.tetro[y][ry--];
+			}
+			ry = result.dim - 1;
+		}
+		if (a.rot < 3)
+			result.rot++;
+		else
+			result.rot = 0;
+
+		return result;
+	}
+	// Return given STetro, counter-clockwise.
+	STetro ccw(STetro a)
+	{
+		if (a.id == 6)
+			return a;
+
+		STetro result;
+		charinfo_clear(*result.tetro, 4 * 4);
+		result.x = a.x;
+		result.y = a.y;
+		result.dim = a.dim;
+		result.id = a.id;
+
+		uint8_t rx = result.dim - 1;
+		for (int y = 0; y < result.dim; y++)
+		{
+			for (int x = 0; x < result.dim; x++)
+			{
+				result.tetro[x][y] = a.tetro[rx][x];
+			}
+			rx--;
+		}
+		if (a.rot > 0)
+			result.rot--;
+		else
+			result.rot = 3;
+
+		return result;
+	}
 }
 
 
@@ -171,66 +234,6 @@ STetro get_STetro(const CHAR_INFO tet[4][4])
 			result.tetro[x][y] = tet[y][x];
 		}
 	}
-	return result;
-}
-
-// Return STetro given, clockwise.
-STetro cw(STetro a)
-{
-	if (a.id == 6)
-		return a;
-
-	STetro result;
-	charinfo_clear(*result.tetro, 4 * 4);
-	result.x = a.x;
-	result.y = a.y;
-	result.dim = a.dim;
-	result.id = a.id;
-
-	uint8_t ry = result.dim - 1;
-
-	for (int y = 0; y < result.dim; y++)
-	{
-		for (int x = 0; x < result.dim; x++)
-		{
-			result.tetro[x][y] = a.tetro[y][ry--];
-		}
-		ry = result.dim - 1;
-	}
-	if (a.rot < 3)
-		result.rot++;
-	else
-		result.rot = 0;
-
-	return result;
-}
-// Return given STetro, counter-clockwise.
-STetro ccw(STetro a)
-{
-	if (a.id == 6)
-		return a;
-
-	STetro result;
-	charinfo_clear(*result.tetro, 4 * 4);
-	result.x = a.x;
-	result.y = a.y;
-	result.dim = a.dim;
-	result.id = a.id;
-
-	uint8_t rx = result.dim - 1;
-	for (int y = 0; y < result.dim; y++)
-	{
-		for (int x = 0; x < result.dim; x++)
-		{
-			result.tetro[x][y] = a.tetro[rx][x];
-		}
-		rx--;
-	}
-	if (a.rot > 0)
-		result.rot--;
-	else
-		result.rot = 3;
-
 	return result;
 }
 
