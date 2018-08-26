@@ -102,11 +102,12 @@ private:
 			}
 		}
 
-		STetro ghost;
 		memcpy(&ghost, &SActive, sizeof(STetro));
 
 		while (can_down(ghost))
 			ghost.y++;
+
+
 
 		for (int y = 0; y < 4; y++)
 		{
@@ -116,7 +117,7 @@ private:
 				if (ghost.tetro[x][y].Char.AsciiChar != 0 && ghost.tetro[x][y].Char.AsciiChar != ' ')
 				{
 					ghost.tetro[x][y].Attributes = 0b111;
-					ghostfield[SActive.x + x][SActive.y + y] = ghost.tetro[x][y];
+					ghostfield[ghost.x + x][ghost.y + y] = ghost.tetro[x][y];
 				}
 			}
 		}
@@ -333,6 +334,9 @@ public:
 
 	// player's active piece
 	STetro SActive;
+
+	// ghost piece
+	STetro ghost;
 
 	// return a drop interval in milliseconds, given level
 	double get_interval (uint16_t a)

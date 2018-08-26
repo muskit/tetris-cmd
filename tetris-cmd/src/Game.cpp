@@ -67,32 +67,6 @@ void put_field(CHAR_INFO a[14][40])
 	}
 }
 
-// Put playfield onto screen, its origin from COORD playfield_origin
-void put_playfield()
-{
-	for (int y = 0; y <= 19; y++)
-	{
-		for (int x = 0; x <= 9; x++)
-		{
-			if (tetris.playfield[x + 4][y + 20].Char.AsciiChar != ' ' && tetris.playfield[x + 4][y + 20].Char.AsciiChar != 0)
-				screen[playfield_origin.Y + y][playfield_origin.X + x] = tetris.playfield[x + 4][y + 20];
-		}
-	}
-}
-// Put activefield onto screen, its origin from COORD playfield_origin
-void put_activefield()
-{
-	for (int y = 0; y <= 19; y++)
-	{
-		for (int x = 0; x <= 9; x++)
-		{
-			if (tetris.activefield[x + 4][y + 20].Char.AsciiChar != ' ' && tetris.activefield[x + 4][y + 20].Char.AsciiChar != 0)
-			{
-				screen[playfield_origin.Y + y][playfield_origin.X + x] = tetris.activefield[x + 4][y + 20];
-			}
-		}
-	}
-}
 void put_background()
 {
 	for (int y = 0; y <= 19; y++)
@@ -180,11 +154,14 @@ void put_debug()
 	put_string(0, 11, "SActive.y = " + std::to_string(tetris.SActive.y));
 	put_string(0, 12, "rot: " + (std::to_string(tetris.SActive.rot)));
 
-	put_string(0, 13, "left: " + (std::to_string((GetAsyncKeyState(VK_LEFT) & 32768) >> 15)));
-	put_string(0, 14, "right: " + (std::to_string((GetAsyncKeyState(VK_RIGHT) & 32768) >> 15)));
-	put_string(0, 15, "down: " + (std::to_string((GetAsyncKeyState(VK_DOWN) & 32768) >> 15)));
+	put_string(0, 14, "left: " + (std::to_string((GetAsyncKeyState(VK_LEFT) & 32768) >> 15)));
+	put_string(0, 15, "right: " + (std::to_string((GetAsyncKeyState(VK_RIGHT) & 32768) >> 15)));
+	put_string(0, 16, "down: " + (std::to_string((GetAsyncKeyState(VK_DOWN) & 32768) >> 15)));
 
-	put_string(0, 17, "allow_rot: " + (std::to_string(tetris.get_allowrot())));
+	put_string(0, 18, "allow_rot: " + (std::to_string(tetris.get_allowrot())));
+
+	put_string(0, 21, "ghost.x: " + std::to_string(tetris.ghost.x));
+	put_string(0, 22, "ghost.y: " + std::to_string(tetris.ghost.y));
 }
 
 //////////////////////////////////////////////////////////////////
@@ -221,11 +198,9 @@ int main()
 
 		// RENDER //
 		put_hud();
-		/*put_activefield();
-		put_playfield();*/
+		put_field(tetris.ghostfield);
 		put_field(tetris.activefield);
 		put_field(tetris.playfield);
-		put_field(tetris.ghostfield);
 		put_debug();
 		put_string(0, 0, "FPS: " + std::to_string(1.0f / fr_duration.count()));
 
