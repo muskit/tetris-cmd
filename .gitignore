@@ -31,6 +31,8 @@
 *.out
 *.app
 
+README.md
+
 # directories
 /.vs
 .vs/
