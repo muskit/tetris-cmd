@@ -12,6 +12,8 @@
 #include "Tetro.h"
 #include "Tetris.h"
 
+#define GAME_VERSION "v0.1.0"
+
 using namespace std::chrono_literals;
 
 const uint8_t CONSOLE_WIDTH = 60;
@@ -22,6 +24,10 @@ SMALL_RECT srect = small_rect(0, 0, CONSOLE_WIDTH - 1, CONSOLE_HEIGHT - 1);
 
 COORD playfield_origin = coord(32, 5); // top-left coord to start drawing playfield (INSIDE the HUD)
 COORD size = coord(CONSOLE_WIDTH, CONSOLE_HEIGHT);
+
+auto fr_start = std::chrono::high_resolution_clock::now();
+auto fr_end = std::chrono::high_resolution_clock::now();
+std::chrono::duration<float> fr_duration;
 
 Tetris tetris(1);
 
@@ -126,14 +132,18 @@ void put_hud()
 	put_string(playfield_origin.X + 16, playfield_origin.Y + 13, "LEVEL");
 	put_string(playfield_origin.X + 18, playfield_origin.Y + 15, std::to_string(tetris.get_level()));
 
+	put_string(playfield_origin.X - 10, playfield_origin.Y - 2, GAME_VERSION);
+	put_string(playfield_origin.X - 6, playfield_origin.Y + 22, "F3: toggle debug info");
 }
 
 void put_debug()
 {
 	// HUD EXTRAS
-	put_string(playfield_origin.X - 6, playfield_origin.Y + 6, std::to_string(tetris.get_hold()));
+	put_string(playfield_origin.X - 8, playfield_origin.Y + 6, std::to_string(tetris.get_hold()));
 
 	// SIDE INFO
+	put_string(0, 0, "FPS: " + std::to_string(1.0f / fr_duration.count()));
+
 	put_string(0, 2, "Interval: " + std::to_string(tetris.get_interval()));
 	put_string(0, 3, "can_down: " + std::to_string(tetris.can_down()));
 	put_string(0, 4, "can_left: " + std::to_string(tetris.can_left()));
@@ -173,10 +183,6 @@ int main()
 	// prepare console
 	HANDLE hConsole = init_console();
 
-	auto fr_start = std::chrono::high_resolution_clock::now();
-	auto fr_end = std::chrono::high_resolution_clock::now();
-	std::chrono::duration<float> fr_duration;
-
 	tetris.start();
 
 	while (!tetris.has_lost())
@@ -192,8 +198,8 @@ int main()
 		put_field(tetris.ghostfield);
 		put_field(tetris.activefield);
 		put_field(tetris.playfield);
-		put_debug();
-		put_string(0, 0, "FPS: " + std::to_string(1.0f / fr_duration.count()));
+		if (tetris.show_debug)
+			put_debug();
 
 		WriteConsoleOutput(hConsole, *screen, size, coord(0, 0), &srect);
 		fr_end = std::chrono::high_resolution_clock::now();

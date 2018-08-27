@@ -43,7 +43,9 @@ private:
 	bool hldHard = false;
 	bool hldHold = false;
 	bool hldSoft = false;
+
 	bool hldPause = false;
+	bool hldDebug = false;
 
 	// TETROMINO TIMING
 	int64_t interval = 1000; // how long it takes (ms) until tetromino must go down, will change with difficulty
@@ -51,12 +53,13 @@ private:
 	std::chrono::time_point<std::chrono::steady_clock> spawn_time; // ARE(lock->spawn)
 
 	// DAS TIMING
+	uint16_t autoshift_delay_ms = 225;
+	uint16_t autoshift_time_ms = 40;
 	std::chrono::time_point<std::chrono::steady_clock> autoshift_delay; // delay until we start auto shifting
-
+	std::chrono::time_point<std::chrono::steady_clock> autoshift_time; // interval between each movement attempt
+	
 	// general purpose duration object
 	std::chrono::duration<float, std::milli> duration;
-
-	std::chrono::time_point<std::chrono::steady_clock> autoshift_time; // interval between each movement attempt
 	
 	// Put the SActive onto activefield
 	void SActive_activefield()
@@ -164,7 +167,7 @@ private:
 			{
 				if (!hldR && active)
 				{
-					autoshift_delay = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(120);
+					autoshift_delay = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(autoshift_delay_ms);
 					hldR = true;
 					SActive.x++;
 					moved = true;
@@ -283,6 +286,18 @@ private:
 			// TODO: make pause instead of quit
 			lost = true;
 		}
+
+		if ((GetAsyncKeyState(VK_F3) & 32768) >> 15) // debug, [F3]
+		{
+			if (!hldDebug)
+			{
+				hldDebug = true;
+				show_debug = !show_debug;
+
+			}
+		}
+		else
+			hldDebug = false;
 	}
 
 	// one of the two movement buttons is currently held
@@ -305,7 +320,7 @@ private:
 					SActive.x--;
 					moved = true;
 				}
-				autoshift_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(60);
+				autoshift_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(autoshift_time_ms);
 			}
 
 		}
@@ -324,7 +339,7 @@ private:
 				if (test.tetro[x][y].Char.AsciiChar != ' ')
 				{
 					// check against the playfield
-					if ((playfield[test.x + x][test.y + y].Char.AsciiChar != ' ') || ((test.x + x > 13 || test.x + x < 4) || (test.y + y > 39 || test.y + y < 20) ))
+					if ((playfield[test.x + x][test.y + y].Char.AsciiChar != ' ') || ((test.x + x > 13 || test.x + x < 4) || test.y + y > 39 ))
 						return false;
 				}
 			}
@@ -983,6 +998,8 @@ public:
 	STetro ghost;
 
 	char test_progress = -1;
+
+	bool show_debug = false;
 
 	// return a drop interval in milliseconds, given level
 	double get_interval (uint16_t a)
