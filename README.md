@@ -18,7 +18,7 @@ Tetris for the Windows Command Prompt.
 |Hold Piece        |[C]          |
 
 ## To-do list
-  * ARE + playfield animation
+  * playfield animation
   * pausing
   * scoring system
   * menus + game settings
