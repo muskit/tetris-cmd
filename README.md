@@ -14,8 +14,8 @@ Tetris for the Windows Command Prompt.
 |Soft Drop         |DOWN ARW     |
 |Hard Drop         |[SPACE]      |
 |Quit              |[ESC]        |
-|Debug Info Toggle |[F3]         |
 |Hold Piece        |[C]          |
+|Debug Info Toggle |[F3]         |
 
 ## To-do list
   * playfield animation
