@@ -19,8 +19,8 @@ Tetris for the Windows Command Prompt.
 |Debug Info Toggle |[F3]         |
 
 ## To-do list
-  * playfield animation
+  * line clear animation + timing
   * pausing
-  * scoring system
   * menus + game settings
+  * scoring system
   * code refinement/clean up
