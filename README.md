@@ -2,6 +2,7 @@
 Tetris for the Windows Command Prompt.
 
 **NOTE:** it is highly recommended that you set your console font to "Raster Fonts" 12x16 *when you run the executable!*
+![screenshot](https://i.gyazo.com/e2565197556882311b8f1bdcbf656a77.png)
 
 ## Controls
 
