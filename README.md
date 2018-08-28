@@ -15,6 +15,7 @@ Tetris for the Windows Command Prompt.
 |Hard Drop         |[SPACE]      |
 |Quit              |[ESC]        |
 |Debug Info Toggle |[F3]         |
+|Hold Piece        |[C]          |
 
 ## To-do list
   * ARE + playfield animation
