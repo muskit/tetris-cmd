@@ -12,11 +12,11 @@
 #include "Tetro.h"
 #include "Tetris.h"
 
-#define GAME_VERSION "v0.1.0"
+#define GAME_VERSION "v0.1.0a"
 
 using namespace std::chrono_literals;
 
-const uint8_t CONSOLE_WIDTH = 60;
+const uint8_t CONSOLE_WIDTH = 120;
 const uint8_t CONSOLE_HEIGHT = 30;
 CHAR_INFO screen[CONSOLE_HEIGHT][CONSOLE_WIDTH]; // buffer to draw
 
@@ -34,11 +34,11 @@ Tetris tetris(1);
 /** RENDER FUNCTIONS (screen[y][x]) */
 
 // Puts a std::string into screen.
-void put_string(int x, int y, std::string str)
+void put_string(int x, int y, std::string str, WORD attr = 0b111)
 {
 	for (int i = 0; i < str.size(); i++)
 	{
-		screen[y][x + i] = char_info(str[i], 0b111);
+		screen[y][x + i] = char_info(str[i], attr);
 	}
 }
 // Puts a CHAR_INFO into screen.
@@ -85,13 +85,13 @@ void put_background()
 }
 void put_hud()
 {
-	for (int y = -1; y < 21; y++)
+	for (char y = -1; y < 21; y++)
 	{
-		if (y == -1) // START
+		if (y == -1) // TOP
 		{
 			put_string(playfield_origin.X - 1, playfield_origin.Y + y, "\xC9\xCD\xCD\xBC    \xC8\xCD\xCD\xBB");
 		}
-		else if (y == 20) // END
+		else if (y == 20) // BOTTOM
 		{
 			put_string(playfield_origin.X - 1, playfield_origin.Y + y, "\xC8\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBC");
 		}
@@ -102,23 +102,23 @@ void put_hud()
 	}
 
 	// NEXT PIECE
-	put_string(playfield_origin.X + 12, playfield_origin.Y, "\xB0\xB0    \xB0\xB0");
+	put_string(playfield_origin.X + 12, playfield_origin.Y, "\xC9\xCD    \xCD\xBB");
 	put_string(playfield_origin.X + 14, playfield_origin.Y, "NEXT");
-	put_string(playfield_origin.X + 12, playfield_origin.Y + 1, "\xB0      \xB0");
-	put_string(playfield_origin.X + 12, playfield_origin.Y + 2, "\xB0      \xB0");
-	put_string(playfield_origin.X + 12, playfield_origin.Y + 3, "\xB0      \xB0");
-	put_string(playfield_origin.X + 12, playfield_origin.Y + 4, "\xB0      \xB0");
-	put_string(playfield_origin.X + 12, playfield_origin.Y + 5, "\xB0\xB0\xB0\xB0\xB0\xB0\xB0\xB0");
+	put_string(playfield_origin.X + 12, playfield_origin.Y + 1, "\xBA      \xBA");
+	put_string(playfield_origin.X + 12, playfield_origin.Y + 2, "\xBA      \xBA");
+	put_string(playfield_origin.X + 12, playfield_origin.Y + 3, "\xBA      \xBA");
+	put_string(playfield_origin.X + 12, playfield_origin.Y + 4, "\xBA      \xBA");
+	put_string(playfield_origin.X + 12, playfield_origin.Y + 5, "\xC8\xCD\xCD\xCD\xCD\xCD\xCD\xBC");
 	put_STetro(playfield_origin.X + 14, playfield_origin.Y + 2, Tetro::tetro[tetris.get_next()]);
 
 	// HOLD PIECE
-	put_string(playfield_origin.X - 11, playfield_origin.Y, "\xB0\xB0    \xB0\xB0");
+	put_string(playfield_origin.X - 11, playfield_origin.Y, "\xC9\xCD    \xCD\xBB");
 	put_string(playfield_origin.X - 9, playfield_origin.Y, "HOLD");
-	put_string(playfield_origin.X - 11, playfield_origin.Y+1, "\xB0      \xB0");
-	put_string(playfield_origin.X - 11, playfield_origin.Y+2, "\xB0      \xB0");
-	put_string(playfield_origin.X - 11, playfield_origin.Y+3, "\xB0      \xB0");
-	put_string(playfield_origin.X - 11, playfield_origin.Y+4, "\xB0      \xB0");
-	put_string(playfield_origin.X - 11, playfield_origin.Y+5, "\xB0\xB0\xB0\xB0\xB0\xB0\xB0\xB0");
+	put_string(playfield_origin.X - 11, playfield_origin.Y+1, "\xBA      \xBA");
+	put_string(playfield_origin.X - 11, playfield_origin.Y+2, "\xBA      \xBA");
+	put_string(playfield_origin.X - 11, playfield_origin.Y+3, "\xBA      \xBA");
+	put_string(playfield_origin.X - 11, playfield_origin.Y+4, "\xBA      \xBA");
+	put_string(playfield_origin.X - 11, playfield_origin.Y+5, "\xC8\xCD\xCD\xCD\xCD\xCD\xCD\xBC");
 	if (tetris.get_hold() != -1)
 	{
 		put_STetro(playfield_origin.X - 9, playfield_origin.Y + 2, Tetro::tetro[tetris.get_hold()]);
@@ -132,7 +132,7 @@ void put_hud()
 	put_string(playfield_origin.X + 16, playfield_origin.Y + 13, "LEVEL");
 	put_string(playfield_origin.X + 18, playfield_origin.Y + 15, std::to_string(tetris.get_level()));
 
-	put_string(playfield_origin.X - 10, playfield_origin.Y - 2, GAME_VERSION);
+	put_string(playfield_origin.X - 11, playfield_origin.Y - 2, GAME_VERSION, 0b111 | 0x4000);
 	put_string(playfield_origin.X - 6, playfield_origin.Y + 22, "F3: toggle debug info");
 }
 
@@ -140,6 +140,8 @@ void put_debug()
 {
 	// HUD EXTRAS
 	put_string(playfield_origin.X - 8, playfield_origin.Y + 6, std::to_string(tetris.get_hold()));
+	put_string(playfield_origin.X + 20, playfield_origin.Y + 2, std::to_string(tetris.get_next()));
+	put_string(playfield_origin.X + 20, playfield_origin.Y + 3, "[" + std::to_string(tetris.get_bagindex()) + "]");
 
 	// SIDE INFO
 	put_string(0, 0, "FPS: " + std::to_string(1.0f / fr_duration.count()));
@@ -187,8 +189,8 @@ int main()
 
 	while (!tetris.has_lost())
 	{
-
 		fr_start = std::chrono::high_resolution_clock::now();
+
 		charinfo_clear(*screen, CONSOLE_WIDTH*CONSOLE_HEIGHT);
 
 		tetris.update();
@@ -196,8 +198,8 @@ int main()
 		// RENDER //
 		put_hud();
 		put_field(tetris.ghostfield);
-		put_field(tetris.activefield);
 		put_field(tetris.playfield);
+		put_field(tetris.activefield);
 		if (tetris.show_debug)
 			put_debug();
 

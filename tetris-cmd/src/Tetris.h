@@ -30,6 +30,7 @@ private:
 
 	char hold = -1; //tetro[hold] value of held piece
 	bool active = false;
+	bool first_swap = false;
 	bool moved = false;
 
 	bool allow_swap = true;
@@ -48,15 +49,19 @@ private:
 	bool hldDebug = false;
 
 	// TETROMINO TIMING
-	int64_t interval = 1000; // how long it takes (ms) until tetromino must go down, will change with difficulty
-	std::chrono::time_point<std::chrono::steady_clock> down_time;
-	std::chrono::time_point<std::chrono::steady_clock> spawn_time; // ARE(lock->spawn)
+	uint16_t interval_ms = 1000; // how long it takes (ms) until tetromino must go down, will change with difficulty
+	std::chrono::time_point<std::chrono::high_resolution_clock> down_time;
+	std::chrono::time_point<std::chrono::high_resolution_clock> spawn_time; // ARE(lock->spawn)
 
 	// DAS TIMING
-	uint16_t autoshift_delay_ms = 225;
-	uint16_t autoshift_time_ms = 40;
-	std::chrono::time_point<std::chrono::steady_clock> autoshift_delay; // delay until we start auto shifting
-	std::chrono::time_point<std::chrono::steady_clock> autoshift_time; // interval between each movement attempt
+	uint16_t autoshift_delay_ms = 170;
+	uint16_t autoshift_time_ms = 20;
+	std::chrono::time_point<std::chrono::high_resolution_clock> autoshift_delay; // delay until we start auto shifting
+	std::chrono::time_point<std::chrono::high_resolution_clock> autoshift_time; // interval between each movement attempt
+
+	// LOCKING & CLEARING ANIM. TIMING
+	uint8_t lockflash_time_ms = 50;
+	std::chrono::time_point<std::chrono::high_resolution_clock> lockflash_time;
 	
 	// general purpose duration object
 	std::chrono::duration<float, std::milli> duration;
@@ -146,12 +151,12 @@ private:
 		// MOVE //
 		if ((GetAsyncKeyState(VK_LEFT) & 32768) >> 15) //left
 		{
-			if (can_left())
+			if (!hldL)
 			{
-				if (!hldL && active)
+				hldL = true;
+				autoshift_delay = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(autoshift_delay_ms);
+				if (can_left() && active)
 				{
-					autoshift_delay = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(120);
-					hldL = true;
 					SActive.x--;
 					moved = true;
 				}
@@ -163,12 +168,12 @@ private:
 		}
 		if ((GetAsyncKeyState(VK_RIGHT) & 32768) >> 15) // right
 		{
-			if (can_right())
+			if (!hldR)
 			{
-				if (!hldR && active)
+				hldR = true;
+				autoshift_delay = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(autoshift_delay_ms);
+				if (can_right() && active)
 				{
-					autoshift_delay = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(autoshift_delay_ms);
-					hldR = true;
 					SActive.x++;
 					moved = true;
 				}
@@ -180,7 +185,7 @@ private:
 		}
 
 		// ROTATION //
-		if ((GetAsyncKeyState(0x58) & 32768) >> 15 && active) // CW, [X]
+		if ( ((GetAsyncKeyState(0x58) & 32768) >> 15 || ((GetAsyncKeyState(VK_UP) & 32768 >> 15))) && active) // CW, [X]
 		{
 			if (!hldCW)
 			{
@@ -196,7 +201,7 @@ private:
 		{
 			hldCW = false;
 		}
-		if ((GetAsyncKeyState(0x5A) & 32768) >> 15 && active) // CCW, [Z]
+		if ( ((GetAsyncKeyState(0x5A) & 32768) >> 15) && active) // CCW, [Z]
 		{
 			if (!hldCCW)
 			{
@@ -239,8 +244,8 @@ private:
 					moved = true;
 					if (can_down())
 					{
-						interval = interval / 20;
-						down_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(interval / 20);
+						interval_ms = interval_ms / 20;
+						down_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(interval_ms / 20);
 					}
 					hldSoft = true;
 				}
@@ -250,9 +255,9 @@ private:
 		{
 			if (hldSoft)
 			{
-				interval = get_interval(level);
+				interval_ms = get_interval(level);
 				if(can_down())
-					down_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(interval);
+					down_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(interval_ms);
 			}
 			hldSoft = false;
 		}
@@ -264,6 +269,8 @@ private:
 				hldHold = true;
 				allow_swap = false;
 				active = false;
+				if (hold == -1)
+					first_swap = true;
 
 				char temp = 0;
 				temp = SActive.id;
@@ -308,7 +315,7 @@ private:
 		if (duration.count() <= 0)
 		{
 			duration = autoshift_time - std::chrono::high_resolution_clock::now();
-			if (duration.count() <= 0)
+			if (duration.count() <= 0 && active)
 			{
 				if (hldR && can_right())
 				{
@@ -1119,21 +1126,27 @@ public:
 	}
 
 	// check playfield for lines, update and score as needed
-	void playfield_check()
+	// return false if no clears were made
+	bool playfield_sweep()
 	{
 		const uint8_t *lines = get_clears();
+		uint8_t lines_made = 0;
 
 		for (int i = 0; i < 4; i++)
 		{
 			if (lines[i] != 0)
 			{
-				this->lines++;
+				lines_made++;
 				for (int x = 4; x <= 13; x++)
 				{
 					playfield[x][lines[i]] = char_info();
 				}
 			}
 		}
+		if (lines_made == 0)
+			return false;
+
+		this->lines += lines_made;
 		for (int i = 0; i < 4; i++)
 		{
 			if (lines[i] != 0)
@@ -1147,13 +1160,15 @@ public:
 				}
 			}
 		}
+		return true;
 	}
 
 	/** GETS */
 	uint64_t get_score() { return score; }
-	float get_interval() { return interval; }
+	float get_interval() { return interval_ms; }
 	bool has_lost() { return lost; }
 	uint8_t get_next() { return next; }
+	uint8_t get_bagindex() { return bag_index; }
 	char get_hold() { return hold;  }
 	bool get_allowrot() { return allow_rot; }
 	uint64_t lines_achieved() { return lines; }
@@ -1176,17 +1191,14 @@ public:
 		next = bag[bag_index++];
 		SActive.id = -1;
 
-		interval = get_interval(level);
+		interval_ms = get_interval(level);
 
 		started = true;
 	}
 
 	void update()
 	{
-		if (!started)
-			return;
-
-		if (lost)
+		if (!started || lost)
 			return;
 
 		if (bag_index > 6)
@@ -1210,7 +1222,7 @@ public:
 					if (!can_down())
 						down_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(500);
 					if (can_down() && !can_down_previously)
-						down_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(interval);
+						down_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(interval_ms);
 				}
 
 				if (duration.count() >= 0) // time to down?
@@ -1221,17 +1233,40 @@ public:
 						if (!can_down())
 							down_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(500);
 						else
-							down_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(interval);
+							down_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(interval_ms);
 					}
 					else // cannot move down, LOCK!
 					{
 						SActive_playfield();
-						playfield_check();
-						charinfo_clear(*activefield, 14 * 40);
+
+						if (playfield_sweep())
+						{
+							// lines were cleared; animate!
+						}
+						else
+						{
+							lockflash_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(lockflash_time_ms);
+							for (int y = 0; y < 4; y++)
+							{
+								for (int x = 0; x < 4; x++)
+								{
+									if (SActive.tetro[x][y].Char.AsciiChar != ' ')
+									{
+										SActive.tetro[x][y].Attributes = 0b1111;
+									}
+									
+								}
+							}
+							SActive_activefield();
+						}
+
+						charinfo_clear(*ghostfield, 14 * 40);
 						SActive.id = -1;
 						active = false;
-						allow_swap = true;
 						allow_rot = false;
+						allow_swap = false;
+
+						spawn_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(417); // ARE
 
 						if (lines >= lines_nextlvl)
 						{
@@ -1242,39 +1277,55 @@ public:
 				}
 			}
 		}
-		else
+		else // inactive
 		{
-			if (SActive.id == -1)
+			duration = std::chrono::high_resolution_clock::now() - spawn_time;
+			if (duration.count() >= 0) // only spawn if spawn_time is good
 			{
-				SActive = Tetro::tetro[next];
-				next = bag[bag_index++];
-			}
-			else
-			{
-				SActive = Tetro::tetro[SActive.id];
-			}
+				if (SActive.id == -1)
+				{
+					SActive = Tetro::tetro[next];
+					next = bag[bag_index++];
+					if(!first_swap)
+						allow_swap = true;
+					else
+						first_swap = false;
+				}
+				else
+				{
+					SActive = Tetro::tetro[SActive.id];
+				}
 
-			allow_rot = true;
+				allow_rot = true;
 
-			interval = get_interval(level);
-			down_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(interval);
-			if (!can_down()) // did we lose?
-			{
-				lost = true;
-				return;
-			}
-			else
-			{
-				SActive.y++;
-				if (can_down()) // room to move down one more?
+				interval_ms = get_interval(level);
+				down_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(interval_ms);
+				if (!can_down()) // did we lose?
+				{
+					lost = true;
+					return;
+				}
+				else
 				{
 					SActive.y++;
+					if (can_down()) // room to move down one more?
+					{
+						SActive.y++;
+					}
+					if (!can_down())
+						down_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(500);
 				}
-				if (!can_down())
-					down_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(500);
-			}
 
-			active = true;
+				active = true;
+			}
+			else
+			{
+				duration = std::chrono::high_resolution_clock::now() - lockflash_time;
+				if (duration.count() >= 0)
+				{
+					charinfo_clear(*activefield, 14 * 40);
+				}
+			}
 		}
 		if (active)
 		{
