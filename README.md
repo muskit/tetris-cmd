@@ -9,8 +9,8 @@ Tetris for the Windows Command Prompt.
 |:----------------:|------------:|
 |Left              |LEFT ARW     |
 |Right             |RIGHT ARW    |
-|Clockwise         |[X] / UP ARW |
 |Counter-Clockwise |[Z]          |
+|Clockwise         |[X] / UP ARW |
 |Soft Drop         |DOWN ARW     |
 |Hard Drop         |[SPACE]      |
 |Quit              |[ESC]        |
