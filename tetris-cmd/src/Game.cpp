@@ -12,24 +12,24 @@
 #include "Tetro.h"
 #include "Tetris.h"
 
-#define GAME_VERSION "v0.1.0a"
+#define GAME_VERSION "v0.2.0"
 
 using namespace std::chrono_literals;
 
-const uint8_t CONSOLE_WIDTH = 120;
-const uint8_t CONSOLE_HEIGHT = 30;
+const uint8_t CONSOLE_WIDTH = 75;
+const uint8_t CONSOLE_HEIGHT = 33;
 CHAR_INFO screen[CONSOLE_HEIGHT][CONSOLE_WIDTH]; // buffer to draw
 
 SMALL_RECT srect = small_rect(0, 0, CONSOLE_WIDTH - 1, CONSOLE_HEIGHT - 1);
 
-COORD playfield_origin = coord(32, 5); // top-left coord to start drawing playfield (INSIDE the HUD)
+COORD playfield_origin = coord(30, 5); // top-left coord to start drawing playfield (INSIDE the HUD)
 COORD size = coord(CONSOLE_WIDTH, CONSOLE_HEIGHT);
 
 auto fr_start = std::chrono::high_resolution_clock::now();
 auto fr_end = std::chrono::high_resolution_clock::now();
 std::chrono::duration<float> fr_duration;
 
-Tetris tetris(1);
+Tetris tetris;
 
 /** RENDER FUNCTIONS (screen[y][x]) */
 
@@ -109,7 +109,8 @@ void put_hud()
 	put_string(playfield_origin.X + 12, playfield_origin.Y + 3, "\xBA      \xBA");
 	put_string(playfield_origin.X + 12, playfield_origin.Y + 4, "\xBA      \xBA");
 	put_string(playfield_origin.X + 12, playfield_origin.Y + 5, "\xC8\xCD\xCD\xCD\xCD\xCD\xCD\xBC");
-	put_STetro(playfield_origin.X + 14, playfield_origin.Y + 2, Tetro::tetro[tetris.get_next()]);
+	if(tetris.get_started())
+		put_STetro(playfield_origin.X + 14, playfield_origin.Y + 2, Tetro::tetro[tetris.get_next()]);
 
 	// HOLD PIECE
 	put_string(playfield_origin.X - 11, playfield_origin.Y, "\xC9\xCD    \xCD\xBB");
@@ -132,16 +133,17 @@ void put_hud()
 	put_string(playfield_origin.X + 16, playfield_origin.Y + 13, "LEVEL");
 	put_string(playfield_origin.X + 18, playfield_origin.Y + 15, std::to_string(tetris.get_level()));
 
-	put_string(playfield_origin.X - 11, playfield_origin.Y - 2, GAME_VERSION, 0b111 | 0x4000);
 	put_string(playfield_origin.X - 6, playfield_origin.Y + 22, "F3: toggle debug info");
+	put_string(playfield_origin.X - 7, playfield_origin.Y + 23, "ESC: quit (instantly!)");
 }
 
 void put_debug()
 {
 	// HUD EXTRAS
 	put_string(playfield_origin.X - 8, playfield_origin.Y + 6, std::to_string(tetris.get_hold()));
-	put_string(playfield_origin.X + 20, playfield_origin.Y + 2, std::to_string(tetris.get_next()));
+	put_string(playfield_origin.X + 21, playfield_origin.Y + 2, std::to_string(tetris.get_next()));
 	put_string(playfield_origin.X + 20, playfield_origin.Y + 3, "[" + std::to_string(tetris.get_bagindex()) + "]");
+	put_string(playfield_origin.X + 4, playfield_origin.Y - 3, std::to_string(tetris.test));
 
 	// SIDE INFO
 	put_string(0, 0, "FPS: " + std::to_string(1.0f / fr_duration.count()));
@@ -184,9 +186,72 @@ int main()
 {
 	// prepare console
 	HANDLE hConsole = init_console();
+	std::string timestamp = __DATE__;
+	timestamp += ", ";
+	timestamp += __TIME__;
+
+	std::string __title = "tetris-cmd ";
+	__title += GAME_VERSION;
+	SetConsoleTitle(__title.c_str());
+
+	bool started = false;
+	uint8_t level = 1;
+	while (!started)
+	{
+		if ((GetAsyncKeyState(VK_RIGHT) & 32768 >> 15))
+		{
+			if (level < 20)
+				level++;
+			else
+				level = 1;
+		}
+		if ((GetAsyncKeyState(VK_LEFT) & 32768 >> 15))
+		{
+			if (level <= 1)
+				level = 20;
+			else
+				level--;
+		}
+		put_string(0, 0, "tetris-cmd ", 0b111 | 0x4000);
+		put_string(11, 0, GAME_VERSION, 0b111 | 0x4000);
+		put_string(0, 1, "Build timestamp:");
+		put_string(0, 2, timestamp);
+
+		put_string(0, 4, "LEVEL: ");
+		put_string(7, 4, std::to_string(level), 0b111 | 0x4000);
+		put_string(11, 4, "<- use L/R ARW keys");
+
+		put_string(0, 6, "Press [SPACE] to start");
+
+		put_string(0, 9, "For best experience, set this console font to");
+		put_string(0, 10, "Raster Graphics (12x16) by right-clicking on the");
+		put_string(0, 11, "window title bar, then going to Properties.");
+		put_string(0, 13, "(Or at least get a square font!)");
+
+		WriteConsoleOutput(hConsole, *screen, size, coord(0, 0), &srect);
+		started = ((GetAsyncKeyState(VK_SPACE) & 32768 >> 15));
+		charinfo_clear(*screen, CONSOLE_WIDTH*CONSOLE_HEIGHT);
+
+		std::this_thread::sleep_for(1ms);
+	}
+
+	tetris = Tetris(level);
+
+	charinfo_clear(*screen, CONSOLE_WIDTH*CONSOLE_HEIGHT);
+
+	put_hud();
+	put_string(playfield_origin.X + 2, playfield_origin.Y + 5, "READY");
+	WriteConsoleOutput(hConsole, *screen, size, coord(0, 0), &srect);
+
+	charinfo_clear(*screen, CONSOLE_WIDTH*CONSOLE_HEIGHT);
+	put_hud();
+	put_string(playfield_origin.X + 3, playfield_origin.Y + 5, "GO!");
+	std::this_thread::sleep_for(833ms);
+	
+	WriteConsoleOutput(hConsole, *screen, size, coord(0, 0), &srect);
+	std::this_thread::sleep_for(833ms);
 
 	tetris.start();
-
 	while (!tetris.has_lost())
 	{
 		fr_start = std::chrono::high_resolution_clock::now();
@@ -204,14 +269,18 @@ int main()
 			put_debug();
 
 		WriteConsoleOutput(hConsole, *screen, size, coord(0, 0), &srect);
+
 		fr_end = std::chrono::high_resolution_clock::now();
 		fr_duration = fr_end - fr_start;
 	}
 
-	std::cout << std::string(8, '\n');
-	std::cout << "Your score was " << tetris.get_score() << '\n';
-	std::cout << "Thanks for playing tetris-cmd,\n";
-	std::cout << "a Tetris clone by muskit\n\n";
-	std::cout << "Made in Vietnam and USA.\n\n";
-	std::this_thread::sleep_for(5s);
+	// end
+	put_hud();
+	put_field(tetris.ghostfield);
+	put_field(tetris.playfield);
+	put_field(tetris.activefield);
+	put_string(playfield_origin.X, playfield_origin.Y + 5, "GAME OVER!");
+	WriteConsoleOutput(hConsole, *screen, size, coord(0, 0), &srect);
+
+	while (!((GetAsyncKeyState(VK_RETURN) & 32768 >> 15))) { std::this_thread::sleep_for(1ms); }
 }

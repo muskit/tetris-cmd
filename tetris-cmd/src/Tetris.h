@@ -24,7 +24,7 @@ private:
 	uint32_t lines_nextlvl = lines + 10;
 
 	// bag system (will rework)
-	uint8_t next; //next piece, to preview
+	int8_t next = -1; //next piece, to preview
 	uint8_t bag[7] = { 0,1,2,3,4,5,6 };
 	uint8_t bag_index = 0;
 
@@ -48,19 +48,25 @@ private:
 	bool hldPause = false;
 	bool hldDebug = false;
 
+	// LINE CLEARING
+	uint64_t linedrop_time_ms = 650;
+	bool are_clears = false;
+	int8_t lines_cleared[4];
+	std::chrono::time_point<std::chrono::high_resolution_clock> linedrop_time;
+
 	// TETROMINO TIMING
-	uint16_t interval_ms = 1000; // how long it takes (ms) until tetromino must go down, will change with difficulty
+	uint64_t interval_ms = 1000; // how long it takes (ms) until tetromino must go down, will change with difficulty
 	std::chrono::time_point<std::chrono::high_resolution_clock> down_time;
 	std::chrono::time_point<std::chrono::high_resolution_clock> spawn_time; // ARE(lock->spawn)
 
 	// DAS TIMING
-	uint16_t autoshift_delay_ms = 170;
-	uint16_t autoshift_time_ms = 20;
+	uint64_t autoshift_delay_ms = 170;
+	uint64_t autoshift_time_ms = 20;
 	std::chrono::time_point<std::chrono::high_resolution_clock> autoshift_delay; // delay until we start auto shifting
 	std::chrono::time_point<std::chrono::high_resolution_clock> autoshift_time; // interval between each movement attempt
 
-	// LOCKING & CLEARING ANIM. TIMING
-	uint8_t lockflash_time_ms = 50;
+	// LOCKING ANIM. TIMING
+	uint64_t lockflash_time_ms = 50;
 	std::chrono::time_point<std::chrono::high_resolution_clock> lockflash_time;
 	
 	// general purpose duration object
@@ -227,7 +233,7 @@ private:
 					hldHard = true;
 					while (can_down())
 						SActive.y++;
-					down_time = std::chrono::high_resolution_clock::now() + std::chrono::microseconds(100);
+					down_time = std::chrono::high_resolution_clock::now();
 					allow_rot = false;
 				}
 			}
@@ -1098,11 +1104,14 @@ public:
 		return is_valid(test);
 	}
 
-	// based on SActive's last coordinates, return cleared lines.
+	// based on SActive's last coordinates, occupy lines_cleared[] with full lines.
 	// ARRAY SIZE: 4 bytes
-	uint8_t *get_clears()
+	void get_clears()
 	{
-		uint8_t lines[4] = { 0,0,0,0 };
+		for (int y = 0; y < 4; y++)
+		{
+			lines_cleared[y] = -1;
+		}
 
 		// occupy lines[]
 		for (int y = 0; y < 4; y++)
@@ -1120,38 +1129,17 @@ public:
 				}
 			}
 			if (minos == 10)
-				lines[y] = SActive.y + y;
+				lines_cleared[y] = SActive.y + y;
 		}
-		return lines;
 	}
 
-	// check playfield for lines, update and score as needed
-	// return false if no clears were made
-	bool playfield_sweep()
+	void playfield_linedrop()
 	{
-		const uint8_t *lines = get_clears();
-		uint8_t lines_made = 0;
-
 		for (int i = 0; i < 4; i++)
 		{
-			if (lines[i] != 0)
+			if (lines_cleared[i] != -1)
 			{
-				lines_made++;
-				for (int x = 4; x <= 13; x++)
-				{
-					playfield[x][lines[i]] = char_info();
-				}
-			}
-		}
-		if (lines_made == 0)
-			return false;
-
-		this->lines += lines_made;
-		for (int i = 0; i < 4; i++)
-		{
-			if (lines[i] != 0)
-			{
-				for (int y = lines[i]; y >= 15; y--)
+				for (int y = lines_cleared[i]; y >= 15; y--)
 				{
 					for (int x = 4; x <= 13; x++)
 					{
@@ -1160,7 +1148,33 @@ public:
 				}
 			}
 		}
-		return true;
+	}
+
+	// check playfield for lines, update and score as needed
+	// return false if no clears were made
+	void playfield_sweep()
+	{
+		get_clears();
+		uint8_t lines_made = 0;
+
+		for (int i = 0; i < 4; i++)
+		{
+			if (lines_cleared[i] != -1)
+			{
+				lines_made++;
+				for (int x = 4; x <= 13; x++)
+				{
+					playfield[x][lines_cleared[i]] = char_info();
+				}
+			}
+		}
+		if (lines_made == 0)
+			return;
+
+		this->lines += lines_made;
+		
+		linedrop_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(linedrop_time_ms);
+		are_clears = true;
 	}
 
 	/** GETS */
@@ -1174,6 +1188,7 @@ public:
 	uint64_t lines_achieved() { return lines; }
 	uint8_t get_level() { return level; }
 	uint32_t get_line_nextlvl() { return lines_nextlvl; }
+	bool get_started() { return started; }
 
 	void start()
 	{
@@ -1195,6 +1210,8 @@ public:
 
 		started = true;
 	}
+
+	bool test = false;
 
 	void update()
 	{
@@ -1238,13 +1255,13 @@ public:
 					else // cannot move down, LOCK!
 					{
 						SActive_playfield();
+						charinfo_clear(*activefield, 14 * 40);
+						playfield_sweep();
+						if (!are_clears)
+						{
+							spawn_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(417); // ARE
 
-						if (playfield_sweep())
-						{
-							// lines were cleared; animate!
-						}
-						else
-						{
+							// flash effect setup
 							lockflash_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(lockflash_time_ms);
 							for (int y = 0; y < 4; y++)
 							{
@@ -1254,10 +1271,18 @@ public:
 									{
 										SActive.tetro[x][y].Attributes = 0b1111;
 									}
-									
+
 								}
 							}
 							SActive_activefield();
+						}
+
+
+						if (lines >= lines_nextlvl)
+						{
+							if(level < 20)
+								++level;
+							lines_nextlvl += 10;
 						}
 
 						charinfo_clear(*ghostfield, 14 * 40);
@@ -1265,14 +1290,6 @@ public:
 						active = false;
 						allow_rot = false;
 						allow_swap = false;
-
-						spawn_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(417); // ARE
-
-						if (lines >= lines_nextlvl)
-						{
-							++level;
-							lines_nextlvl += 10;
-						}
 					}
 				}
 			}
@@ -1280,7 +1297,7 @@ public:
 		else // inactive
 		{
 			duration = std::chrono::high_resolution_clock::now() - spawn_time;
-			if (duration.count() >= 0) // only spawn if spawn_time is good
+			if (duration.count() >= 0 && !are_clears) // only spawn if spawn_time is good
 			{
 				if (SActive.id == -1)
 				{
@@ -1318,12 +1335,88 @@ public:
 
 				active = true;
 			}
-			else
+			else // can't spawn; check on the flash
 			{
 				duration = std::chrono::high_resolution_clock::now() - lockflash_time;
-				if (duration.count() >= 0)
+				if (duration.count() >= 0 && !are_clears)
 				{
 					charinfo_clear(*activefield, 14 * 40);
+				}
+				
+				// line dropping + anim
+				if (are_clears)
+				{
+					duration = linedrop_time - std::chrono::high_resolution_clock::now();
+
+					// "SHADE ANIMATION"
+					if (duration.count() >= linedrop_time_ms*.95) // shade 4
+					{
+						for (int i = 0; i < 4; i++)
+						{
+							if (lines_cleared[i] != -1)
+							{
+								for (int x = 4; x <= 13; x++)
+								{
+									activefield[x][lines_cleared[i]].Char.AsciiChar = 219;
+									activefield[x][lines_cleared[i]].Attributes = 0b1111;
+								}
+							}
+						}
+					}
+					else if (duration.count() >= linedrop_time_ms*.85) // shade 3
+					{
+						for (int i = 0; i < 4; i++)
+						{
+							if (lines_cleared[i] != -1)
+							{
+								for (int x = 4; x <= 13; x++)
+								{
+									activefield[x][lines_cleared[i]].Char.AsciiChar = 178;
+									activefield[x][lines_cleared[i]].Attributes = 0b1111;
+								}
+							}
+						}
+					}
+					else if (duration.count() >= linedrop_time_ms*.75) // shade 2
+					{
+						for (int i = 0; i < 4; i++)
+						{
+							if (lines_cleared[i] != -1)
+							{
+								for (int x = 4; x <= 13; x++)
+								{
+									activefield[x][lines_cleared[i]].Char.AsciiChar = 177;
+									activefield[x][lines_cleared[i]].Attributes = 0b1111;
+								}
+							}
+						}
+					}
+					else if (duration.count() >= linedrop_time_ms*.65) // shade 1
+					{
+						for (int i = 0; i < 4; i++)
+						{
+							if (lines_cleared[i] != -1)
+							{
+								for (int x = 4; x <= 13; x++)
+								{
+									activefield[x][lines_cleared[i]].Char.AsciiChar = 176;
+									activefield[x][lines_cleared[i]].Attributes = 0b1111;
+								}
+							}
+						}
+					}
+					else
+					{
+						charinfo_clear(*activefield, 14 * 40);
+					}
+
+					if (duration.count() <= 0) // end case; line drop time
+					{
+						test = true;
+						are_clears = false;
+						playfield_linedrop();
+						spawn_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(417); // ARE
+					}
 				}
 			}
 		}
