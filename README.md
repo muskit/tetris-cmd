@@ -7,7 +7,7 @@ Tetris for the Windows Command Prompt.
 ## Controls
 
 |Command           |Key          |
-|:----------------:|------------:|
+|:-----------------|------------:|
 |Left              |LEFT ARW     |
 |Right             |RIGHT ARW    |
 |Counter-Clockwise |[Z]          |
