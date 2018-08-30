@@ -12,7 +12,7 @@
 #include "Tetro.h"
 #include "Tetris.h"
 
-#define GAME_VERSION "v0.2.0"
+#define GAME_VERSION "v0.2.1"
 
 using namespace std::chrono_literals;
 
@@ -28,6 +28,9 @@ COORD size = coord(CONSOLE_WIDTH, CONSOLE_HEIGHT);
 auto fr_start = std::chrono::high_resolution_clock::now();
 auto fr_end = std::chrono::high_resolution_clock::now();
 std::chrono::duration<float> fr_duration;
+
+auto game_start = std::chrono::high_resolution_clock::now();
+auto game_end = std::chrono::high_resolution_clock::now();
 
 Tetris tetris;
 
@@ -135,6 +138,46 @@ void put_hud()
 
 	put_string(playfield_origin.X - 6, playfield_origin.Y + 22, "F3: toggle debug info");
 	put_string(playfield_origin.X - 7, playfield_origin.Y + 23, "ESC: quit (instantly!)");
+}
+
+void put_time()
+{
+	std::chrono::duration<float, std::milli> duration = std::chrono::high_resolution_clock::now() - game_start;
+
+	uint8_t mins = duration.count() / 60000;
+	uint64_t secs = duration.count() / 1000;
+	uint64_t centi = duration.count() / 10;
+
+	while(secs >= 60)
+	{
+		secs -= 60;
+	}
+	while (centi >= 100)
+	{
+		centi -= 100;
+	}
+
+	std::string s_secs = std::to_string(secs);
+	std::string s_mins = std::to_string(mins);
+	std::string s_ms = std::to_string(centi);
+
+	if (secs < 10)
+	{
+		s_secs.insert(0, "0");
+	}
+	if (mins < 10)
+	{
+		s_mins.insert(0, "0");
+	}
+	while (s_ms.size() < 2)
+	{
+		s_ms.insert(0, "0");
+	}
+
+	put_string(playfield_origin.X + 16, playfield_origin.Y + 20, s_mins + ":" + s_secs + "." + s_ms);
+
+
+
 }
 
 void put_debug()
@@ -252,6 +295,7 @@ int main()
 	std::this_thread::sleep_for(833ms);
 
 	tetris.start();
+	game_start = std::chrono::high_resolution_clock::now();
 	while (!tetris.has_lost())
 	{
 		fr_start = std::chrono::high_resolution_clock::now();
@@ -265,6 +309,7 @@ int main()
 		put_field(tetris.ghostfield);
 		put_field(tetris.playfield);
 		put_field(tetris.activefield);
+		put_time();
 		if (tetris.show_debug)
 			put_debug();
 
