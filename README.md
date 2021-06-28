@@ -1,10 +1,12 @@
+### *NOTE: THIS IS A PROTOTYPE CREATED WHILE LEANRING C++. I HAVE NO PLANS ON CONTINUING THIS PROJECT.*
+
 # tetris-cmd
 Tetris for the Windows Command Prompt.
 
 Uses Super Rotation, Initial Rotation, Initial Hold, (Initial) Auto Shift, and 7-bag.
 
 **NOTE:** it is highly recommended that you set your console font to "Raster Fonts" 12x16 *when you run the executable!*
-![preview](https://github.com/muskit/tetris-cmd/raw/master/0.2.0preview.gif)
+![preview](0.2.0preview.gif)
 
 ## Controls
 
